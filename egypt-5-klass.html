@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Древний Египет</title>
+<meta name="description" content="Интерактивный объяснятор по истории Древнего Египта для 5 класса. По учебнику В. Р. Мединского, А. О. Чубарьяна «История. История Древнего мира. 5 класс», глава «Древний Египет».">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- the fonts do not block the first paint: if Google Fonts is slow or blocked, the page shows the fallback fonts -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@700;800&family=Golos+Text:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+<!-- the hieroglyph font is added by the script: it asks Google Fonts only for the signs used on this page -->
+<style>
+:root {
+  color-scheme: light;
+  /* papyrus, ink and the paints of the tomb walls: lapis lazuli, gold, red ochre, turquoise faience */
+  --bg: #f3e5c2; --panel: #fdf7e8; --panel2: #f5e9cc; --line: #d8be8a; --fg: #2b1e10; --muted: #6d5636; --faint: #a78d62;
+  --lapis: #1f4f9e; --lapis2: #163a78; --turq: #14897d; --gold: #b07d14; --gold2: #e3b448; --ochre: #b2432a;
+  --ok: #1d855a; --hot: #b2432a; --nile: #2e6fb5;
+  --frieze: repeating-linear-gradient(90deg, var(--lapis) 0 16px, var(--gold2) 16px 19px, var(--ochre) 19px 35px, var(--gold2) 35px 38px, var(--turq) 38px 54px, var(--gold2) 54px 57px);
+  --goldtx: linear-gradient(180deg, #e9bb4c 0%, #c48f1d 55%, #8f5f0c 100%);
+  --lift: 0 16px 30px -22px rgba(80, 50, 10, .55), 0 2px 6px -2px rgba(80, 50, 10, .18);
+  --display: "Bitter", Georgia, "Times New Roman", serif;
+  --body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --hiero: "Noto Sans Egyptian Hieroglyphs", "Segoe UI Historic", "Aegyptus", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; color: var(--fg); font: 17px/1.5 var(--body);
+  /* a sheet of papyrus: crossed fibres and darker edges */
+  background:
+    radial-gradient(900px 600px at 50% 40%, rgba(255, 248, 225, .55), transparent 75%),
+    repeating-linear-gradient(90deg, rgba(140, 100, 40, .045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(0deg, rgba(140, 100, 40, .035) 0 1px, transparent 1px 11px),
+    radial-gradient(1200px 800px at 50% 50%, transparent 60%, rgba(150, 105, 40, .22)),
+    var(--bg);
+  background-attachment: fixed;
+}
+.page { max-width: 1330px; margin: 0 auto; padding: 26px 24px 70px; display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 40px; }
+.hg { font-family: var(--hiero); font-weight: 400; line-height: 1; }
+.gold { background: var(--goldtx); -webkit-background-clip: text; background-clip: text; color: transparent; }
+:focus-visible { outline: 3px solid var(--lapis); outline-offset: 3px; }
+button { font-family: var(--body); }
+/* a painted border, as at the top of a tomb wall */
+.frieze { height: 14px; background: var(--frieze); border-block: 2px solid var(--fg); border-radius: 2px; }
+
+/* list of questions */
+.toc { position: sticky; top: 26px; align-self: start; }
+.brand { display: flex; align-items: center; gap: 10px; margin: 14px 0 2px; }
+.toc h1 { font: 800 25px/1.1 var(--display); margin: 0; letter-spacing: -.01em; }
+.toc .sub { color: var(--muted); font-size: 14px; margin: 2px 0 18px 46px; }
+.toc ol { list-style: none; margin: 0; padding: 0; position: relative; display: grid; gap: 2px; }
+.toc ol::before { content: ""; position: absolute; left: 7px; top: 16px; bottom: 16px; width: 2px; border-radius: 2px;
+  background: linear-gradient(180deg, var(--gold2), var(--gold) 60%, var(--ochre)); opacity: .7; }
+.toc a { position: relative; display: block; padding: 7px 10px 7px 30px; border-radius: 8px; color: var(--muted); text-decoration: none;
+  font: 500 15.5px/1.3 var(--body); cursor: pointer; transition: color .2s, background .2s; }
+.toc a::before { content: ""; position: absolute; left: 1px; top: 11px; width: 10px; height: 10px; border-radius: 50%;
+  border: 2px solid var(--faint); background: var(--bg); transition: box-shadow .3s, background .3s, border-color .3s; }
+.toc a:hover { color: var(--fg); }
+.toc a.now { color: var(--fg); font-weight: 600; background: linear-gradient(90deg, rgba(31, 79, 158, .13), rgba(31, 79, 158, 0) 85%); }
+/* a question you played to the end: turquoise, like faience */
+.toc a.done::before { border-color: var(--turq); background: var(--turq); }
+.toc a.now::before { border-color: var(--lapis); background: var(--lapis); box-shadow: 0 0 0 4px rgba(227, 180, 72, .45); }
+.toc a.done.now::before { background: var(--turq); }
+.toc .book { margin: 18px 0 0; padding: 10px 12px; border: 1px dashed var(--faint); border-radius: 8px; color: var(--muted); font-size: 13.5px; line-height: 1.4; }
+
+.ep { display: none; }
+.ep.on { display: block; animation: enter .45s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes enter { from { opacity: 0; transform: translateY(10px); } }
+main > .frieze { margin-bottom: 22px; }
+.qh { display: grid; grid-template-columns: auto 1fr; column-gap: 22px; align-items: start; margin: 0 0 20px; }
+.qh.solo { display: block; }
+/* the number of a question sits in a cartouche, the frame for a pharaoh's name; under it the same number in Egyptian numerals */
+.qn { display: grid; justify-items: center; gap: 6px; min-width: 96px; padding: 12px 14px 10px 14px; border: 3px solid var(--fg); border-radius: 48px;
+  background: var(--panel); box-shadow: inset 0 0 0 3px var(--gold2), var(--lift); position: relative; }
+.qn::after { content: ""; position: absolute; left: 50%; bottom: -10px; width: 46px; height: 5px; margin-left: -23px; background: var(--fg); border-radius: 2px; }
+.qn b { font: 800 46px/.9 var(--display); }
+.qn svg { display: block; height: 22px; width: auto; }
+.tag { display: inline-block; font: 700 12px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--gold); border: 1px solid currentColor;
+  padding: 4px 8px; border-radius: 99px; margin: 4px 0 6px; background: rgba(255, 255, 255, .4); }
+h2 { font: 800 31px/1.15 var(--display); margin: 0 0 8px; letter-spacing: -.01em; text-wrap: balance; }
+.lead { color: var(--muted); margin: 0; font-size: 18px; max-width: 820px; }
+.lead b { color: var(--fg); font-weight: 600; }
+
+/* step controls: the Next button names the next action */
+.bar { display: flex; align-items: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.bar button, .btn { background: rgba(255, 252, 240, .95); border: 1px solid var(--line); color: var(--fg); border-radius: 10px; padding: 9px 17px;
+  font: 600 16px var(--body); cursor: pointer; transition: transform .15s, box-shadow .2s, background .2s, border-color .2s; }
+.bar button:hover:not(:disabled), .btn:hover:not(:disabled) { border-color: var(--muted); background: #fff6dd; }
+/* the main action: lapis with a gold edge; it looks pressable and gently pulses, so children see where to tap */
+.bar button.next, .btn.next { display: inline-flex; align-items: center; gap: 8px; text-align: left; color: #fff; border: 0;
+  padding: 9px 17px 9px 10px; font: 700 16px/1.2 var(--body); background: linear-gradient(180deg, #2c63bd, var(--lapis2));
+  box-shadow: 0 4px 0 var(--gold), 0 12px 24px -10px rgba(22, 58, 120, .7); animation: nudge 2.2s ease-in-out infinite; }
+.bar button.next:hover:not(:disabled), .btn.next:hover:not(:disabled) { background: linear-gradient(180deg, #2c63bd, var(--lapis2)); filter: brightness(1.1); transform: translateY(-2px); }
+.bar button.next:active:not(:disabled), .btn.next:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--gold), 0 6px 14px -8px rgba(22, 58, 120, .7); }
+.bar button.next .go, .btn.next .go { flex: none; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 9px; background: rgba(255, 255, 255, .22); }
+@keyframes nudge {
+  0%, 100% { box-shadow: 0 4px 0 var(--gold), 0 12px 24px -10px rgba(22, 58, 120, .7), 0 0 0 0 rgba(227, 180, 72, .6); }
+  55% { box-shadow: 0 4px 0 var(--gold), 0 12px 24px -10px rgba(22, 58, 120, .7), 0 0 0 12px rgba(227, 180, 72, 0); }
+}
+.bar button:disabled { opacity: .35; cursor: default; box-shadow: none; }
+.bar button.next:disabled { opacity: 1; animation: none; color: var(--muted); background: var(--panel2); box-shadow: none; }
+/* waiting for an answer: the button is grey and says why */
+.bar button.next.wait:disabled { color: var(--faint); }
+.tap { display: inline-block; color: var(--lapis); font-weight: 700; font-size: 16px; animation: bob 1.1s ease-in-out infinite; }
+.tap[hidden] { display: none; }
+.tap .m { display: none; }
+@keyframes bob { 50% { transform: translateX(-5px); } }
+@keyframes bobdown { 50% { transform: translateY(4px); } }
+.bar button.prev { border-color: transparent; background: none; color: var(--muted); padding: 9px 10px 9px 6px; }
+.bar button.prev:hover:not(:disabled) { border-color: transparent; background: rgba(43, 30, 16, .06); color: var(--fg); }
+.bar .cnt { font: 600 13px var(--body); color: var(--muted); padding: 5px 12px; white-space: nowrap; border: 1px solid var(--line); border-radius: 99px;
+  background: linear-gradient(90deg, rgba(227, 180, 72, .45) calc(var(--p, 0) * 100%), rgba(43, 30, 16, .04) 0); transition: background .3s; }
+.onward { display: inline-block; margin-top: 30px; font: 800 19px/1.35 var(--display); color: var(--fg);
+  text-decoration: underline 2px var(--gold2); text-underline-offset: 7px; animation: enter .45s both; }
+.onward:hover { text-decoration-color: var(--lapis); }
+.say { font-size: 19px; margin: 16px 0 0; min-height: 29px; max-width: 900px; }
+.say b { color: var(--lapis); }
+.intro { font-size: 17px; margin: 0 0 16px; padding: 11px 16px; max-width: 900px; border-radius: 8px; border-left: 4px solid var(--lapis);
+  background: rgba(31, 79, 158, .07); }
+/* the conclusion of a question: a gold-framed plate with a painted band on top */
+.concl { position: relative; font: 700 20px/1.45 var(--display); margin: 22px 0 0; padding: 26px 22px 16px; border-radius: 6px; max-width: 900px;
+  background: var(--panel); border: 2px solid var(--gold); box-shadow: inset 0 0 0 4px var(--panel), inset 0 0 0 5px var(--gold2), var(--lift); animation: enter .45s both; overflow: hidden; }
+.concl::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--frieze); }
+.concl:empty { display: none; }
+.concl .lab { display: block; font: 700 12px var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+
+.box { background: var(--panel); border: 1.5px solid var(--line); border-radius: 8px; padding: 14px 16px; box-shadow: var(--lift); }
+.box .h { font: 700 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.fact { margin-top: 16px; max-width: 900px; padding: 12px 16px; border-radius: 8px; background: rgba(20, 137, 125, .09); border-left: 4px solid var(--turq); font-size: 17px; }
+.fact b { color: var(--turq); }
+.duo { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.stage { background: var(--panel); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px; box-shadow: var(--lift); }
+.stage svg { display: block; width: 100%; height: auto; }
+
+/* ---------- the map of Egypt (questions 1 and 3) ---------- */
+.map text { font: 600 13px var(--body); fill: var(--fg); }
+.map .sea { fill: #4f8fc9; }
+.map .sea-t { fill: #fff; font: 600 14px var(--body); letter-spacing: .02em; }
+.map .redland { fill: #c2603a; opacity: 0; transition: opacity .8s; }
+.map .valley { fill: none; stroke: transparent; stroke-width: 10; stroke-linecap: round; transition: stroke .9s, stroke-width .9s; }
+.map .delta { fill: transparent; transition: fill .9s; }
+.map .nile { fill: none; stroke: var(--nile); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset 1.6s ease-in-out; }
+.map .branch { fill: none; stroke: var(--nile); stroke-width: 2.5; opacity: 0; transition: opacity .6s .9s; }
+.map .cat path { stroke: var(--fg); stroke-width: 2.5; stroke-linecap: round; }
+.map .opt, .map .flow, .map .shield, .map .nomes, .map .upper, .map .lower, .map .memphis, .map .crw, .map .crr, .map .crd,
+.map .l-desert, .map .l-black, .map .l-nile, .map .l-up, .map .l-low, .map .cat { opacity: 0; transition: opacity .7s, transform .9s; }
+.map.river .nile { stroke-dashoffset: 0; }
+.map.river .branch, .map.river .l-nile, .map.river .cat { opacity: 1; }
+.map.flow-on .flow { opacity: 1; }
+.map .flow path { fill: none; stroke: #fff; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; animation: flowup 1.6s ease-in-out infinite; }
+@keyframes flowup { 0% { transform: translateY(6px); opacity: 0; } 40% { opacity: 1; } 100% { transform: translateY(-8px); opacity: 0; } }
+.map.desert .redland { opacity: .32; }
+.map.desert .l-desert { opacity: 1; }
+.map.flood .valley { stroke: #5aa9e0; stroke-width: 30; }
+.map.flood .delta { fill: #5aa9e0; }
+.map.silt .valley { stroke: #3a3026; stroke-width: 24; }
+.map.silt .delta { fill: #3a3026; }
+.map.silt .l-black { opacity: 1; }
+.map.green .valley { stroke: #5b9a37; stroke-width: 24; }
+.map.green .delta { fill: #5b9a37; }
+.map.shield-on .shield { opacity: 1; }
+.map .shield rect { fill: var(--panel); stroke: var(--gold); stroke-width: 2; }
+.map .shield text { font: 700 12px var(--body); fill: var(--fg); }
+.map.nomes-on .nomes { opacity: 1; }
+.map .nomes path { stroke: var(--ochre); stroke-width: 2; stroke-dasharray: 3 3; }
+.map.up .upper, .map.up .l-up, .map.up .crw { opacity: 1; }
+.map.low .lower, .map.low .l-low, .map.low .crr { opacity: 1; }
+.map .upper { fill: none; stroke: #fff; stroke-width: 26; stroke-linecap: round; mix-blend-mode: soft-light; }
+.map .lower { fill: var(--ochre); }
+.map.low .lower { opacity: .5; }
+.map.memphis-on .memphis { opacity: 1; }
+.map.unite .crw, .map.unite .crr { opacity: 0; }
+.map.unite .crd { opacity: 1; }
+.map .ltag rect { fill: rgba(253, 247, 232, .92); stroke: var(--fg); stroke-width: 1.5; }
+.map .ltag text { font: 700 13px var(--body); }
+
+/* question 1 and 3: a choice inside a step */
+.decide { margin-top: 14px; max-width: 900px; border: 2px solid var(--gold); border-radius: 8px; padding: 12px 16px 14px; background: var(--panel); box-shadow: var(--lift); animation: enter .4s both; }
+.decide .dq { font: 800 19px/1.3 var(--display); margin: 0 0 10px; }
+.decide .ch { display: flex; gap: 8px; flex-wrap: wrap; }
+.choice { font: 700 16px var(--body); padding: 10px 16px; border: 2px solid #c8b07c; background: #fff8e4; color: var(--fg); border-radius: 10px; cursor: pointer;
+  box-shadow: 0 3px 0 #c8b07c; transition: transform .15s, background .2s, border-color .2s; text-align: left; }
+.choice:hover:not(:disabled) { background: #fff0c8; border-color: var(--gold); transform: translateY(-1px); }
+.choice:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #c8b07c; }
+.choice:disabled { cursor: default; }
+.choice.right { border-color: var(--ok); background: color-mix(in oklab, var(--ok) 14%, #fff); box-shadow: 0 3px 0 var(--ok); }
+.choice.wrong { border-color: var(--hot); background: color-mix(in oklab, var(--hot) 12%, #fff); box-shadow: 0 3px 0 var(--hot); }
+.choice.dim { opacity: .5; }
+.fb { margin-top: 12px; font-size: 17px; padding: 10px 14px; border-left: 3px solid var(--ok); border-radius: 0 8px 8px 0; background: color-mix(in oklab, var(--ok) 11%, var(--panel)); animation: enter .35s both; }
+.fb.bad { border-left-color: var(--hot); background: color-mix(in oklab, var(--hot) 11%, var(--panel)); }
+.fb:empty { display: none; }
+
+/* ---------- question 2: shadoof and the year ---------- */
+.shad .beam, .shad .bucket { transition: transform 1s cubic-bezier(.45, .05, .35, 1); }
+.shad .beam { transform-box: view-box; transform-origin: 170px 70px; }
+.shad .stream { fill: none; stroke: #5aa9e0; stroke-width: 5; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .6s; }
+.shad.pour .stream { stroke-dashoffset: 0; }
+.shad .canal { fill: none; stroke: #8a6a3a; stroke-width: 6; transition: stroke .6s; }
+.shad .canal.wet { stroke: #5aa9e0; }
+.shad .crop { transition: fill .8s; }
+.cycle-l { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+.buckets { display: flex; gap: 6px; }
+.buckets i { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--nile); background: transparent; transition: background .3s; }
+.buckets i.on { background: #5aa9e0; }
+.sub-h { font: 800 22px/1.25 var(--display); margin: 34px 0 6px; }
+.slots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 12px 0 12px; counter-reset: s; }
+.slot { min-height: 96px; border: 2px dashed var(--faint); border-radius: 8px; padding: 26px 8px 8px; font-size: 14.5px; line-height: 1.3; position: relative; background: rgba(255, 255, 255, .25); }
+.slot::before { counter-increment: s; content: counter(s); position: absolute; left: 8px; top: 4px; font: 800 15px var(--display); color: var(--faint); }
+.slot.full { border-style: solid; border-color: var(--turq); background: color-mix(in oklab, var(--turq) 10%, var(--panel)); animation: pop .35s both; }
+.slot .se { display: block; font: 700 11px var(--body); letter-spacing: .06em; text-transform: uppercase; color: var(--turq); margin-top: 4px; }
+@keyframes pop { from { opacity: 0; transform: scale(.95); } }
+.pool { display: flex; flex-wrap: wrap; gap: 8px; }
+.card-btn { font: 600 16px/1.3 var(--body); text-align: left; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer;
+  box-shadow: var(--lift); color: var(--fg); max-width: 300px; transition: border-color .2s, transform .15s; }
+.card-btn:hover { border-color: var(--lapis); transform: translateY(-2px); }
+.card-btn.shake { animation: shake .4s; border-color: var(--hot); }
+@keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+
+/* ---------- question 4: the pyramid of society ---------- */
+.soc { display: grid; grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.tri { display: grid; gap: 6px; justify-items: center; }
+.tri .row { display: flex; gap: 6px; justify-content: center; width: 100%; }
+.layer { font: 700 16px/1.2 var(--body); color: #fff; border: 0; cursor: pointer; padding: 12px 8px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  clip-path: polygon(var(--k) 0, calc(100% - var(--k)) 0, 100% 100%, 0 100%); transition: filter .2s, transform .15s; flex: 1; min-height: 70px; }
+.layer .hg { font-size: 26px; }
+.layer:hover { filter: brightness(1.12); }
+.layer.sel { filter: brightness(1.15) drop-shadow(0 0 0 #000); outline: 3px solid var(--gold2); outline-offset: -3px; }
+.layer.seen::after { content: "✓"; font-size: 13px; opacity: .9; }
+.layer.ok { animation: glow .7s; }
+.layer.no { animation: shake .4s; }
+@keyframes glow { 50% { filter: brightness(1.45); } }
+.L0 { background: #a8761a; } .L1 { background: var(--lapis); } .L2 { background: var(--turq); } .L3 { background: #7b5a2e; } .L4 { background: #5c4a3a; }
+.gcard .hg.big { font-size: 46px; color: var(--fg); float: right; margin: 0 0 6px 12px; }
+.gcard h3 { font: 800 22px/1.2 var(--display); margin: 0 0 6px; }
+.gcard p { margin: 0 0 8px; }
+.gcard .chips { display: grid; gap: 6px; margin-top: 8px; clear: both; }
+.gcard .chips div { display: flex; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 8px; background: var(--panel2); font-size: 16px; }
+.gcard .chips .hg { font-size: 28px; width: 34px; text-align: center; flex: none; }
+.riddle { font: 700 19px/1.4 var(--display); }
+.riddle small { display: block; font: 600 13px var(--body); color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; }
+.modebar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+/* ---------- question 5: the Near East map and the timeline ---------- */
+.ne text { font: 600 12.5px var(--body); fill: var(--fg); }
+.ne .sea { fill: #4f8fc9; }
+.ne .opt { opacity: 0; transition: opacity .7s; }
+.ne .reg { font: 800 13px var(--body); letter-spacing: .08em; }
+.ne .hatch { fill: url(#hatch); stroke: var(--gold); stroke-width: 1.5; }
+.ne .hitt { fill: rgba(178, 67, 42, .22); }
+.ne .march { fill: none; stroke: var(--ochre); stroke-width: 3; stroke-dasharray: 7 6; animation: march 1s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -13; } }
+.ne .pin circle { fill: var(--ochre); stroke: #fff; stroke-width: 2; }
+.ne .pin text { font: 700 12.5px var(--body); }
+.ne.s-eg .o-eg, .ne.s-meg .o-meg, .ne.s-con .o-con, .ne.s-kad .o-kad, .ne.s-peace .o-peace, .ne.s-abu .o-abu { opacity: 1; }
+.army { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.army span { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 99px; background: var(--panel); border: 1.5px solid var(--line); font-weight: 600; animation: pop .35s both; }
+.army .hg { font-size: 24px; }
+/* the timeline: numbered marks in scale on the axis, the events with dates listed under it */
+.tl { position: relative; height: 110px; margin: 6px 10px 0; }
+.tl .axis { position: absolute; left: 0; right: 0; top: 44px; height: 4px; background: var(--fg); border-radius: 2px; }
+.tl .axis::after { content: ""; position: absolute; right: -4px; top: -6px; border: 8px solid transparent; border-left: 12px solid var(--fg); border-right: 0; }
+.tl .zero { position: absolute; top: 34px; width: 3px; height: 24px; margin-left: -1px; background: var(--ochre); }
+.tl .era { position: absolute; top: 88px; font: 700 13px var(--body); color: var(--muted); white-space: nowrap; }
+.tl .mk { position: absolute; top: 39px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--lapis); border: 2px solid #fff; animation: pop .35s both; }
+.tl .mk b, .tll .n { display: grid; place-items: center; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 99px; font: 800 13px var(--display); color: var(--lapis); background: var(--panel); border: 2px solid var(--lapis); }
+.tl .mk b { position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px; }
+.tl .mk.dn b { bottom: auto; top: 18px; }
+.tll { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+.tll li { display: flex; gap: 10px; align-items: center; animation: pop .35s both; }
+.tll li em { font-style: normal; color: var(--lapis); font-weight: 600; white-space: nowrap; }
+
+/* ---------- question 6: gods ---------- */
+.gods { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.god { text-align: left; border: 1.5px solid var(--line); background: var(--panel); border-radius: 8px; padding: 12px 14px; cursor: pointer; box-shadow: var(--lift);
+  font: 16px/1.4 var(--body); color: var(--fg); display: grid; grid-template-columns: 48px 1fr; gap: 4px 10px; align-items: center; transition: border-color .2s, transform .15s; }
+.god:hover { border-color: var(--lapis); transform: translateY(-2px); }
+.god .hg { font-size: 38px; grid-row: span 2; text-align: center; color: var(--lapis2); }
+.god b { font: 800 18px var(--display); }
+.god small { color: var(--muted); font-size: 14px; }
+.god .more { grid-column: 1 / -1; font-size: 15.5px; display: none; padding-top: 6px; border-top: 1px solid var(--line); margin-top: 4px; }
+.god.open { border-color: var(--gold); background: #fffaf0; }
+.god.open .more { display: block; animation: enter .3s both; }
+.sit { font: 800 19px/1.35 var(--display); margin: 0 0 12px; }
+.sit span { display: block; font: 700 12px var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.godch { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.godch .choice { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.godch .hg { font-size: 34px; }
+
+/* ---------- question 7: the judgement of Osiris ---------- */
+.court { display: flex; align-items: flex-end; justify-content: center; gap: 4px; }
+.court .who { text-align: center; font: 600 13px var(--body); color: var(--muted); transition: opacity .6s, transform .6s; }
+.court .who .hg { display: block; font-size: 64px; color: var(--fg); }
+.court .who.dim { opacity: .25; }
+.court svg { width: min(100%, 320px); height: auto; }
+.scale .beam { transform-box: view-box; transform-origin: 160px 64px; transition: transform 1s cubic-bezier(.4, 1.4, .5, 1); }
+.scale .pan { transition: transform 1s cubic-bezier(.4, 1.4, .5, 1); }
+.scale .heart, .scale .feather { transition: opacity .6s; }
+.scale .ok-glow { opacity: 0; transition: opacity .6s; }
+.scale.glow .ok-glow { opacity: 1; }
+.scale .iaru { opacity: 0; transition: opacity .8s; }
+.scale.iaru-on .iaru { opacity: 1; }
+.speech { margin-top: 12px; padding: 10px 14px; border-radius: 8px; background: var(--panel); border: 1.5px dashed var(--gold); font-style: italic; animation: enter .4s both; }
+.speech:empty { display: none; }
+.deeds { display: grid; gap: 10px; }
+.deed { padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 8px; background: var(--panel); }
+.deed p { margin: 0 0 8px; font-weight: 600; }
+.deed .ch { display: flex; gap: 6px; flex-wrap: wrap; }
+.deed .choice { font-size: 15px; padding: 7px 12px; }
+.choice[aria-pressed="true"] { border-color: var(--lapis); background: #e6eefc; box-shadow: 0 3px 0 var(--lapis); }
+.verdict { margin-top: 12px; font: 700 18px/1.4 var(--display); padding: 12px 14px; border-radius: 8px; }
+.verdict.good { background: color-mix(in oklab, var(--ok) 14%, var(--panel)); border: 2px solid var(--ok); }
+.verdict.bad { background: color-mix(in oklab, var(--hot) 12%, var(--panel)); border: 2px solid var(--hot); }
+.verdict:empty { display: none; }
+
+/* ---------- question 8: the pyramid ---------- */
+.pyr .row { opacity: 0; transform: translateY(-14px); transition: opacity .5s, transform .5s; }
+.pyr .row.on { opacity: 1; transform: none; }
+.pyr .row polygon { fill: #dcb86f; stroke: #a7823f; stroke-width: 1; }
+.pyr .row line { stroke: #b8954f; stroke-width: 1; }
+.pyr .row.cap polygon { fill: url(#capgold); stroke: #9a6a10; }
+.pyr .plan { fill: none; stroke: var(--fg); stroke-width: 1.5; stroke-dasharray: 5 5; opacity: .5; }
+.pyr .opt { opacity: 0; transition: opacity .6s; }
+.pyr.s-quarry .o-quarry, .pyr.s-boat .o-boat, .pyr.s-sled .o-sled, .pyr.s-big .o-big, .pyr.s-wonder .o-wonder, .pyr.s-work .o-work { opacity: 1; }
+.pyr text { font: 600 13px var(--body); fill: var(--fg); }
+.pyr .boatg { animation: sail 6s ease-in-out infinite alternate; }
+@keyframes sail { from { transform: translateX(-12px); } to { transform: translateX(26px); } }
+.pyr .sledg { animation: drag 5s ease-in-out infinite alternate; transform-box: view-box; }
+@keyframes drag { from { transform: translate(0, 0); } to { transform: translate(36px, -22px); } }
+.nums { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.num { padding: 8px 12px; border-radius: 8px; background: var(--panel); border: 1.5px solid var(--line); animation: pop .35s both; }
+.num b { display: block; font: 800 22px/1.1 var(--display); color: var(--ochre); }
+.num span { font-size: 14px; color: var(--muted); }
+
+/* ---------- question 9: hieroglyphs ---------- */
+.stone .band { transition: opacity .5s; }
+.stone .hl { fill: none; stroke: var(--gold2); stroke-width: 4; opacity: 0; transition: opacity .5s; }
+.stone.s-bands .hl.b, .stone.s-cart .hl.c, .stone.s-cart .hl.g { opacity: 1; }
+.stone.s-hide .band { opacity: 0; }
+.stone .lbl { opacity: 0; transition: opacity .5s; font: 700 12px var(--body); fill: var(--fg); }
+.stone.s-bands .lbl { opacity: 1; }
+.stone.forgot .band { opacity: .15; }
+.stone .q { opacity: 0; font: 800 60px var(--display); fill: var(--ochre); transition: opacity .5s; }
+.stone.forgot .q { opacity: 1; }
+.stone .hidden { opacity: 0; transition: opacity .6s; }
+.stone.s-found .hidden { opacity: 1; }
+.decode { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.decode span { display: grid; justify-items: center; gap: 4px; padding: 8px 10px; border-radius: 8px; background: var(--panel); border: 1.5px solid var(--line); animation: pop .35s both; }
+.decode .hg { font-size: 34px; }
+.decode b { font: 800 16px var(--display); color: var(--lapis); }
+.writer { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 22px; align-items: start; }
+.writer label { font: 700 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 7px; }
+.writer input[type="text"] { width: 100%; background: var(--panel); color: var(--fg); border: 2px solid var(--line); border-radius: 8px; padding: 10px 12px; font: 19px var(--body); }
+.writer input[type="text"]:focus { border-color: var(--lapis); outline: none; }
+.writer .opts { display: flex; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+.writer .opts label { text-transform: none; letter-spacing: 0; font: 500 16px var(--body); color: var(--fg); display: flex; gap: 8px; align-items: center; cursor: pointer; margin: 0; }
+.writer .opts input { width: 18px; height: 18px; accent-color: var(--lapis); margin: 0; }
+.cart-wrap { display: flex; justify-content: center; padding: 14px 6px; overflow-x: auto; }
+/* the cartouche: an oval rope with a knot bar at the end */
+.cart { display: inline-flex; align-items: center; gap: 4px; min-height: 92px; min-width: 120px; padding: 10px 26px 10px 22px; border: 4px solid var(--fg); border-radius: 60px;
+  background: #fff4d6; position: relative; box-shadow: inset 0 0 0 3px var(--gold2); }
+.cart::after { content: ""; position: absolute; right: -14px; top: 12px; bottom: 12px; width: 8px; background: var(--fg); border-radius: 3px; }
+.cart .hg { font-size: 54px; color: var(--fg); animation: pop .3s both; }
+.cart .ph { color: var(--faint); font-style: italic; }
+.legend-n { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.legend-n span { font-size: 14px; padding: 4px 9px; border-radius: 99px; background: var(--panel2); }
+.legend-n b { color: var(--lapis); }
+.alpha { display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 6px; margin-top: 14px; }
+.alpha span { display: grid; justify-items: center; padding: 6px 2px; border-radius: 8px; background: rgba(255, 255, 255, .45); border: 1px solid var(--line); font-weight: 700; font-size: 14px; }
+.alpha .hg { font-size: 26px; font-weight: 400; }
+
+/* ---------- question 10: the test ---------- */
+.qz { max-width: 900px; }
+.qz .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.qz .choice { width: 100%; }
+.dots { display: flex; gap: 5px; margin: 0 0 14px; flex-wrap: wrap; }
+.dots i { width: 26px; height: 8px; border-radius: 99px; background: rgba(43, 30, 16, .1); }
+.dots i.r { background: var(--ok); } .dots i.w { background: var(--hot); } .dots i.c { background: var(--gold2); }
+.result { text-align: center; padding: 24px 16px; }
+.result .hg { font-size: 70px; color: var(--fg); }
+.result .score { font: 800 46px/1.1 var(--display); margin: 8px 0 4px; }
+.result .rank { font: 800 24px/1.3 var(--display); color: var(--lapis); }
+
+/* go deeper */
+.sources ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; max-width: 900px; font-size: 18px; }
+.sources li { display: grid; grid-template-columns: 96px 1fr; gap: 14px; }
+.sources .q { justify-self: start; align-self: start; margin-top: 3px; padding: 2px 9px; border-radius: 99px; white-space: nowrap;
+  font: 700 12px/1.6 var(--body); color: var(--lapis); background: rgba(31, 79, 158, .1); }
+.sources a { color: var(--fg); font-weight: 600; text-decoration-color: var(--gold); text-underline-offset: 3px; }
+.sources a:hover { text-decoration-color: var(--lapis); }
+.sources .t { color: var(--muted); }
+.sources .closing { font: 800 30px/1.25 var(--display); margin: 44px 0 0; }
+.sources .credit { max-width: 900px; margin: 28px 0 0; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: 16px; font-style: italic; }
+
+/* a projector or a small laptop: the two-column blocks stack */
+@media (max-width: 1180px) {
+  .page { grid-template-columns: 230px minmax(0, 1fr); gap: 28px; }
+  .duo, .soc, .writer { grid-template-columns: 1fr; }
+  .duo .stage { max-width: 520px; }
+  /* in the game the riddle goes above the pyramid, so it is read before the tap */
+  .soc.game #side4 { order: -1; }
+  .slots { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* phones and narrow windows */
+@media (max-width: 960px) {
+  .page { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 14px 16px 60px; }
+  .toc { position: static; min-width: 0; }
+  .toc .sub { margin-bottom: 10px; }
+  .toc .book { display: none; }
+  .toc ol { display: flex; overflow-x: auto; gap: 6px; padding-bottom: 6px; scrollbar-width: thin; }
+  .toc ol::before { display: none; }
+  .toc a { white-space: nowrap; background: rgba(255, 252, 240, .9); border-radius: 99px; padding: 7px 12px 7px 28px; }
+  .toc a::before { left: 10px; }
+  .qh { grid-template-columns: auto 1fr; column-gap: 14px; }
+  .qn { min-width: 70px; padding: 8px 10px 7px; }
+  .qn b { font-size: 32px; }
+  .qn svg { height: 16px; }
+  h2 { font-size: 23px; }
+  .lead, .say { font-size: 17px; }
+  .concl { font-size: 18px; }
+  .tap { order: -1; flex-basis: 100%; animation-name: bobdown; }
+  .tap .d { display: none; } .tap .m { display: inline; }
+  .godch { grid-template-columns: 1fr 1fr; }
+  .qz .opts { grid-template-columns: 1fr; }
+  .slots { grid-template-columns: 1fr 1fr; }
+  .sources li { grid-template-columns: 1fr; gap: 4px; }
+  .sources .closing { font-size: 22px; }
+  .court .who .hg { font-size: 44px; }
+  .cart .hg { font-size: 40px; }
+  .layer { font-size: 14px; }
+}
+@media (max-width: 420px) {
+  .qh { grid-template-columns: 1fr; row-gap: 14px; }
+  .qn { justify-self: start; grid-auto-flow: column; align-items: center; border-radius: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<!-- shared patterns for the pictures -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="sand" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#ecd29a"/><circle cx="3" cy="4" r="1" fill="#d4b06a"/><circle cx="10" cy="10" r="1.1" fill="#d9b975"/></pattern>
+    <pattern id="hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="8" height="8" fill="rgba(227,180,72,.25)"/><rect width="3" height="8" fill="rgba(176,125,20,.45)"/></pattern>
+    <linearGradient id="capgold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe08a"/><stop offset="1" stop-color="#c8901f"/></linearGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bfe0f2"/><stop offset="1" stop-color="#fbeccb"/></linearGradient>
+  </defs>
+</svg>
+
+<div class="page">
+<aside class="toc">
+  <div class="frieze"></div>
+  <div class="brand">
+    <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true"><path d="M18 4 33 31H3Z" fill="#dcb86f" stroke="#2b1e10" stroke-width="2" stroke-linejoin="round"/><path d="M18 4 24 15H12Z" fill="#e3b448" stroke="#2b1e10" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 23h18M6 28h24" stroke="#a7823f" stroke-width="1.4"/></svg>
+    <h1 class="gold">Древний Египет</h1>
+  </div>
+  <p class="sub">История для 5 класса</p>
+  <ol id="toc"></ol>
+  <p class="book">По учебнику: В. Р. Мединский, А. О. Чубарьян. «История. История Древнего мира. 5 класс», глава «Древний Египет», § 5–10.</p>
+</aside>
+
+<main>
+<div class="frieze"></div>
+
+<section class="ep" id="e1">
+  <header class="qh"><div class="qn" data-n="1"></div><div>
+    <span class="tag">Учебник, § 5</span>
+    <h2>Почему Египет называют «даром Нила»?</h2>
+    <p class="lead">Египет лежит в Африке, посреди <b>пустыни</b>. Дождей там почти не бывает. Как же там появилось одно из первых государств?</p>
+  </div></header>
+  <p class="intro">Нажимай большую синюю кнопку — карта будет меняться шаг за шагом.</p>
+  <div class="duo">
+    <div class="stage" id="map1"></div>
+    <div><p class="say" id="say1"></p><div id="ask1"></div></div>
+  </div>
+  <div class="bar"></div>
+  <p class="concl" id="c1"></p>
+</section>
+
+<section class="ep" id="e2">
+  <header class="qh"><div class="qn" data-n="2"></div><div>
+    <span class="tag">Учебник, § 5</span>
+    <h2>Как жил египетский земледелец?</h2>
+    <p class="lead">Разлив прошёл, но поля далеко от реки снова сохнут. Египтяне придумали <b>шадуф</b> — «журавль» для воды. Помоги полить поле: нужно <b>три ведра</b>.</p>
+  </div></header>
+  <div class="duo">
+    <div class="stage" id="shad"></div>
+    <div>
+      <p class="say" id="say2">Шадуф — это длинный шест на столбе. На одном конце — ведро, на другом — тяжёлый камень.</p>
+      <div class="cycle-l"><button class="btn next" id="shadBtn"></button><div class="buckets" id="buckets"><i></i><i></i><i></i></div></div>
+    </div>
+  </div>
+  <h3 class="sub-h">Год на Ниле</h3>
+  <p class="lead">Вся жизнь земледельца шла за рекой. Нажимай карточки <b>по порядку</b>: что было сначала, что потом.</p>
+  <div class="slots" id="slots"></div>
+  <div class="pool" id="pool"></div>
+  <div class="fb" id="fb2"></div>
+  <div class="bar"><button id="b2-reset">↺ Сначала</button></div>
+  <p class="concl" id="c2"></p>
+</section>
+
+<section class="ep" id="e3">
+  <header class="qh"><div class="qn" data-n="3"></div><div>
+    <span class="tag">Учебник, § 5</span>
+    <h2>Как Египет стал единым?</h2>
+    <p class="lead">Египет не всегда был одной страной. Посмотри, как из множества маленьких земель появилось <b>единое государство</b>.</p>
+  </div></header>
+  <div class="duo">
+    <div class="stage" id="map3"></div>
+    <div><p class="say" id="say3"></p><div id="ask3"></div></div>
+  </div>
+  <div class="bar"></div>
+  <p class="concl" id="c3"></p>
+</section>
+
+<section class="ep" id="e4">
+  <header class="qh"><div class="qn" data-n="4"></div><div>
+    <span class="tag">Учебник, § 6–7</span>
+    <h2>Кто есть кто в Египте?</h2>
+    <p class="lead">Египтяне жили как будто в пирамиде: наверху — один человек, внизу — очень многие. Нажимай на ступени и узнай, кто где.</p>
+  </div></header>
+  <div class="modebar"><button class="choice" id="m4-learn" aria-pressed="true">Изучить</button><button class="choice" id="m4-game">Играть «Кто я?»</button></div>
+  <div class="soc">
+    <div class="tri" id="tri"></div>
+    <div id="side4"></div>
+  </div>
+  <p class="concl" id="c4"></p>
+</section>
+
+<section class="ep" id="e5">
+  <header class="qh"><div class="qn" data-n="5"></div><div>
+    <span class="tag">Учебник, § 8</span>
+    <h2>Как фараоны прославили Египет?</h2>
+    <p class="lead">Около 3,5 тысячи лет назад Египет стал самой сильной страной своего времени. Помогли <b>бронза, войско и смелые фараоны</b>.</p>
+  </div></header>
+  <div class="duo">
+    <div class="stage" id="ne"></div>
+    <div><p class="say" id="say5"></p><div class="army" id="army5"></div></div>
+  </div>
+  <div class="bar" id="bar5"></div>
+  <h3 class="sub-h">Лента времени</h3>
+  <p class="lead">До нашей эры годы считают <b>назад</b>: 3000, 2000, 1000… Чем больше число, тем <b>раньше</b> было событие. Нажимай события от самого давнего.</p>
+  <div class="box" style="margin-top:12px"><div class="tl" id="tl"></div><ol class="tll" id="tll"></ol></div>
+  <div class="pool" id="pool5" style="margin-top:12px"></div>
+  <div class="fb" id="fb5"></div>
+  <p class="concl" id="c5"></p>
+</section>
+
+<section class="ep" id="e6">
+  <header class="qh"><div class="qn" data-n="6"></div><div>
+    <span class="tag">Учебник, § 9</span>
+    <h2>Во что верили египтяне?</h2>
+    <p class="lead">Египтяне почитали <b>много богов</b>. У каждого — своё дело, а у многих — голова животного или птицы. Нажми на бога, чтобы узнать больше.</p>
+  </div></header>
+  <div class="gods" id="gods"></div>
+  <h3 class="sub-h">Кому помолиться?</h3>
+  <p class="lead">Египтяне просили помощи у того бога, который «отвечает» за нужное дело. Помоги им выбрать.</p>
+  <div class="box" style="margin-top:12px" id="pray"></div>
+  <p class="fact" id="fact6" hidden><b>А знаешь ли ты?</b> Фараон Эхнатон решил, что богов не должно быть много, и велел почитать одного — солнечный диск <b>Атон</b>. Жрецы старых богов были против. После смерти Эхнатона египтяне вернулись к прежним богам.</p>
+  <p class="concl" id="c6"></p>
+</section>
+
+<section class="ep" id="e7">
+  <header class="qh"><div class="qn" data-n="7"></div><div>
+    <span class="tag">Учебник, § 9</span>
+    <h2>Что такое суд Осириса?</h2>
+    <p class="lead">Египтяне верили: после смерти жизнь продолжается — но сначала каждого ждёт <b>суд</b>. На нём взвешивают сердце.</p>
+  </div></header>
+  <div class="duo">
+    <div class="stage"><div class="court" id="court"></div></div>
+    <div><p class="say" id="say7"></p><div class="speech" id="speech7"></div></div>
+  </div>
+  <div class="bar"></div>
+  <div id="try7" hidden>
+    <h3 class="sub-h">Взвесь сердце сам</h3>
+    <p class="lead">Как поступил бы честный египтянин? Выбери в каждой истории. Каждый нечестный поступок делает сердце <b>тяжелее</b> — смотри на весы.</p>
+    <div class="deeds" id="deeds" style="margin-top:12px"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+  <p class="concl" id="c7"></p>
+</section>
+
+<section class="ep" id="e8">
+  <header class="qh"><div class="qn" data-n="8"></div><div>
+    <span class="tag">Учебник, § 10</span>
+    <h2>Как построили пирамиду Хеопса?</h2>
+    <p class="lead">Пирамида — это <b>гробница фараона</b>. Самая большая из них стоит уже 4500 лет. Построй её шаг за шагом.</p>
+  </div></header>
+  <div class="stage" id="pyr" style="max-width:820px"></div>
+  <p class="say" id="say8"></p>
+  <div class="nums" id="nums8"></div>
+  <div class="bar"></div>
+  <p class="concl" id="c8"></p>
+</section>
+
+<section class="ep" id="e9">
+  <header class="qh"><div class="qn" data-n="9"></div><div>
+    <span class="tag">Учебник, § 10</span>
+    <h2>Как прочитали иероглифы?</h2>
+    <p class="lead">Египтяне писали <b>иероглифами</b> — знаками-рисунками. Потом их забыли на много веков. Как же их прочитали снова?</p>
+  </div></header>
+  <div class="duo">
+    <div class="stage" id="stone"></div>
+    <div><p class="say" id="say9"></p><div class="decode" id="decode9"></div></div>
+  </div>
+  <div class="bar"></div>
+  <div id="write9" hidden>
+    <h3 class="sub-h">Напиши своё имя иероглифами</h3>
+    <p class="lead">Многие знаки обозначают звуки — как буквы. Впиши имя, и оно появится в <b>картуше</b>, как имя фараона.</p>
+    <div class="writer" style="margin-top:12px">
+      <div>
+        <label for="name9">Твоё имя</label>
+        <input type="text" id="name9" maxlength="14" autocomplete="off" placeholder="например: Маша">
+        <div class="opts">
+          <label><input type="radio" name="det9" value="m" checked> мальчик</label>
+          <label><input type="radio" name="det9" value="f"> девочка</label>
+        </div>
+        <p class="legend" style="color:var(--muted);font-size:14px;margin:12px 0 0">В конце имени египтяне ставили знак-подсказку: сидящий мужчина или женщина. Его не читают вслух.</p>
+      </div>
+      <div class="box"><div class="cart-wrap"><div class="cart" id="cart9"></div></div><div class="legend-n" id="leg9"></div></div>
+    </div>
+    <details style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Вся «азбука» иероглифов</summary><div class="alpha" id="alpha9"></div></details>
+  </div>
+  <p class="concl" id="c9"></p>
+</section>
+
+<section class="ep" id="e10">
+  <header class="qh"><div class="qn" data-n="10"></div><div>
+    <span class="tag">Учебник, § 5–10</span>
+    <h2>Проверь себя</h2>
+    <p class="lead">10 вопросов обо всём, что ты узнал. В конце узнаешь своё египетское звание.</p>
+  </div></header>
+  <div class="box qz" id="quiz"></div>
+</section>
+
+<section class="ep sources" id="e11">
+  <header class="qh solo"><div>
+    <h2>Узнать больше</h2>
+    <p class="lead">Где прочитать подробнее и где увидеть настоящие египетские вещи.</p>
+  </div></header>
+  <ul>
+    <li><span class="q">Вопр. 1–3</span><span>Учебник, <b>§ 5</b>: открытие Древнего Египта, великая река, объединение Верхнего и Нижнего Египта. Прочитай «Гимн Нилу» в рубрике «Работаем с источником».</span></li>
+    <li><span class="q">Вопр. 4</span><span>Учебник, <b>§ 6–7</b>: фараон, чиновники, жрецы, земледельцы и ремесленники, рабы. В конце — отрывок о профессии писца.</span></li>
+    <li><span class="q">Вопр. 5</span><span>Учебник, <b>§ 8</b>: хозяйство, войско, походы Тутмоса III и Рамсеса II.</span></li>
+    <li><span class="q">Вопр. 6–7</span><span>Учебник, <b>§ 9</b>: боги, миф об Осирисе и Исиде, царство Осириса, храмы.</span></li>
+    <li><span class="q">Вопр. 8–9</span><span>Учебник, <b>§ 10</b>: тайна иероглифов, образование, научные знания, искусство.</span></li>
+    <li><span class="q">В музее</span><span><a href="https://www.hermitagemuseum.org/" target="_blank" rel="noopener">Государственный Эрмитаж</a> (Санкт-Петербург) — Египетский зал с саркофагами и мумией. <span class="t">Есть виртуальные экскурсии.</span></span></li>
+    <li><span class="q">В музее</span><span><a href="https://pushkinmuseum.art/" target="_blank" rel="noopener">ГМИИ имени А. С. Пушкина</a> (Москва) — зал Древнего Египта: статуи, папирусы, предметы из гробниц.</span></li>
+  </ul>
+  <p class="closing gold">Египет — дар Нила. А знания — дар тем, кто любопытен.</p>
+  <p class="credit">Тренажер создан для Федотовой Анастасии Владимировны по просьбе Полины Рязановой</p>
+</section>
+</main>
+</div>
+
+<script>
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+// ---------- hieroglyphs ----------
+// Every sign on the page comes from this table (Gardiner numbers in the comments), so the font can be asked for exactly these signs.
+const G = {
+  vulture: '\u{1313F}', foot: '\u{130C0}', viper: '\u{13191}', stand: '\u{133BC}', hand: '\u{130A7}', reed: '\u{131CB}', reeds: '\u{131CC}', // G1 D58 I9 W11 D46 M17 M17A
+  cobra: '\u{13193}', bolt: '\u{13283}', basket: '\u{133A1}', lion: '\u{130ED}', owl: '\u{13153}', water: '\u{13216}', lasso: '\u{1336F}', // I10 O34 V31 E23 G17 N35 V4
+  stool: '\u{132AA}', mouth: '\u{1308B}', cloth: '\u{132F4}', bread: '\u{133CF}', quail: '\u{13171}', sieve: '\u{1340D}', rope: '\u{1337F}', // Q3 D21 S29 X1 G43 Aa1 V13
+  pool: '\u{13219}', arm: '\u{1309D}', wick: '\u{1339B}', man: '\u{13000}', woman: '\u{13050}', // N37 D36 V28 A1 B1
+  ra: '\u{1305B}', thoth: '\u{1305F}', anubis: '\u{13062}', maat: '\u{13066}', ptah: '\u{13070}', seat: '\u{132A8}', eye: '\u{13079}', // C2 C3 C6 C10 C19 Q1 D4
+  falcon: '\u{13143}', jackal: '\u{130E2}', ankh: '\u{132F9}', udjat: '\u{13080}', scarab: '\u{131A3}', heart: '\u{13123}', feather: '\u{13184}', // G5 E15 S34 D10 L1 F34 H6
+  white: '\u{132D1}', red: '\u{132D4}', pschent: '\u{132D6}', crook: '\u{132FE}', flail: '\u{13305}', pyramid: '\u{13274}', boat: '\u{1329B}', // S1 S3 S5 S38 S45 O24 P1
+  water3: '\u{13217}', star: '\u{131FC}', king: '\u{13030}', scribe: '\u{133DE}', netjer: '\u{132B9}', sickle: '\u{13333}', pot: '\u{133CC}', // N35A N14 A42 Y3 R8 U1 W24
+  captive: '\u{1300F}', soldier: '\u{1300E}', bow: '\u{13314}', horse: '\u{130D7}', papyrus: '\u{133DB}', sun: '\u{131F3}', // A13 A12 T10 E6 Y1 N5
+};
+const hg = (g, cls = '') => `<span class="hg ${cls}" aria-hidden="true">${g}</span>`;
+{
+  const l = document.createElement('link');
+  l.rel = 'stylesheet';
+  l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Egyptian+Hieroglyphs&display=swap&text=' + encodeURIComponent(Object.values(G).join(''));
+  document.head.appendChild(l);
+}
+
+// Egyptian numerals for the question numbers: a stroke is 1, a heel bone (an arch) is 10. Ones stand in two rows from 4 up.
+const numSVG = n => {
+  const tens = Math.floor(n / 10), ones = n % 10, parts = [];
+  let x = 0;
+  for (let i = 0; i < tens; i++) { parts.push(`<path d="M${x + 2} 30V12a8 8 0 0 1 16 0v18" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/>`); x += 24; }
+  const rows = ones > 3 ? [Math.ceil(ones / 2), Math.floor(ones / 2)] : [ones];
+  const top = rows.length === 2 ? [2, 18] : [6];
+  rows.forEach((c, r) => { for (let i = 0; i < c; i++) parts.push(`<rect x="${x + i * 8}" y="${top[r]}" width="3.6" height="${rows.length === 2 ? 12 : 24}" rx="1.6" fill="currentColor"/>`); });
+  const w = x + (ones ? Math.max(...rows) * 8 - 4 : -6);
+  return `<svg viewBox="-2 0 ${w + 4} 32" style="color:var(--ochre)" aria-hidden="true">${parts.join('')}</svg>`;
+};
+$$('.qn').forEach(q => { const n = +q.dataset.n; q.innerHTML = `<b class="gold">${n}</b>${numSVG(n)}`; q.title = `${n} — египетскими цифрами`; });
+
+const TOC = ['Почему Египет — «дар Нила»?', 'Как жил земледелец?', 'Как Египет стал единым?', 'Кто есть кто в Египте?', 'Как фараоны прославили Египет?',
+  'Во что верили египтяне?', 'Что такое суд Осириса?', 'Как построили пирамиду?', 'Как прочитали иероглифы?', 'Проверь себя', 'Узнать больше'];
+// A question played to the end gets a turquoise dot in the list and a link to the next question. Nothing is saved: a reload clears them.
+const seen = sec => {
+  const n = +sec.id.slice(1);
+  $(`#toc a[data-e="${n}"]`)?.classList.add('done');
+  if (n < TOC.length && !$('.onward', sec))
+    sec.insertAdjacentHTML('beforeend', `<a class="onward" href="#${n + 1}">Дальше: ${n + 1 < TOC.length ? `${n + 1}. ` : ''}${TOC[n]} →</a>`);
+};
+const concl = (el, t) => { el.innerHTML = t ? `<span class="lab">${G.ankh ? hg(G.ankh) : ''} Запомни</span>${t}` : ''; };
+const keepInView = (bar, k) => { if (k > 0 && bar.offsetParent) bar.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+const nextLabel = t => `<span class="go">▶</span><span>${t}</span>`;
+
+// Back / Next controls. show(k) draws step k; label(k) names the action that leads to step k; wait(k) is true while step k waits for an answer.
+function stepper(bar, n, show, label, wait = () => false) {
+  bar.innerHTML = `<button class="prev">← Назад</button><button class="next"></button><span class="tap"><span class="d">👈</span><span class="m">👇</span> Нажимай на кнопку</span><span class="cnt"></span>`;
+  const s = { k: 0, n }, next = $('.next', bar);
+  s.go = (j, quiet) => {
+    s.k = Math.max(0, Math.min(s.n - 1, j));
+    show(s.k);
+    s.sync();
+    if (!quiet) keepInView(bar, s.k);
+  };
+  s.sync = () => {
+    const last = s.k === s.n - 1, w = !last && wait(s.k);
+    next.innerHTML = last ? `<span class="go">✓</span><span>Готово</span>` : w ? `<span class="go">?</span><span>Сначала ответь на вопрос</span>` : nextLabel(label(s.k + 1));
+    next.classList.toggle('wait', w);
+    next.disabled = last || w;
+    $('.tap', bar).hidden = s.k > 0 || w;
+    $('.cnt', bar).textContent = `шаг ${s.k + 1} из ${s.n}`;
+    bar.style.setProperty('--p', (s.k + 1) / s.n);
+    $('.prev', bar).disabled = s.k === 0;
+  };
+  $('.prev', bar).onclick = () => s.go(s.k - 1);
+  next.onclick = () => s.go(s.k + 1);
+  return s;
+}
+// the state of step k: the st of steps 0..k added up, later steps override earlier
+const acc = (steps, k) => Object.assign({}, ...steps.slice(0, k + 1).map(s => s.st || {}));
+// a question with buttons inside a step; done(i) tells what was picked
+function ask(el, q, picked, onPick) {
+  el.innerHTML = `<div class="decide"><p class="dq">${q.q}</p><div class="ch">${q.o.map((o, i) => `<button class="choice" data-i="${i}">${o}</button>`).join('')}</div><div class="fb"></div></div>`;
+  const paint = p => {
+    $$('.choice', el).forEach((b, i) => { b.disabled = p != null; b.classList.toggle('right', p != null && i === q.r); b.classList.toggle('wrong', p === i && i !== q.r); b.classList.toggle('dim', p != null && i !== q.r && i !== p); });
+    const fb = $('.fb', el);
+    fb.className = 'fb' + (p != null && p !== q.r ? ' bad' : '');
+    fb.innerHTML = p == null ? '' : (p === q.r ? '<b>Верно!</b> ' : '<b>Не совсем.</b> ') + q.why;
+  };
+  paint(picked);
+  $('.ch', el).onclick = e => { const b = e.target.closest('.choice'); if (b && !b.disabled) { const i = +b.dataset.i; paint(i); onPick(i); } };
+}
+
+// ---------- the map of Egypt ----------
+const NILE = 'M232 500C238 480 244 460 236 440C226 412 206 392 212 362C218 334 222 310 210 286C198 260 214 236 210 210C206 184 200 156 200 128';
+const DELTA = 'M200 128L146 74C170 70 190 74 205 68C225 62 245 66 262 64Z';
+const ltag = (x, y, t, cls, w) => `<g class="ltag ${cls}" transform="translate(${x} ${y})"><rect x="${-w / 2}" y="-13" width="${w}" height="24" rx="12"/><text text-anchor="middle" y="4">${t}</text></g>`;
+const shield = (x, y, t, w) => `<g class="shield" transform="translate(${x} ${y})"><rect x="${-w / 2}" y="-13" width="${w}" height="24" rx="4"/><text text-anchor="middle" y="4">🛡 ${t}</text></g>`;
+// the crowns, drawn in a 60 x 80 box: the white crown of the south, the red crown of the north and the double crown
+const CROWN = {
+  w: `<path d="M18 78H42L44 52C46 30 38 12 30 8C22 12 14 30 16 52Z" fill="#fbf7ec" stroke="#2b1e10" stroke-width="3" stroke-linejoin="round"/><circle cx="30" cy="8" r="5" fill="#fbf7ec" stroke="#2b1e10" stroke-width="3"/>`,
+  r: `<path d="M8 78H52V12H44V46H8Z" fill="#b2432a" stroke="#2b1e10" stroke-width="3" stroke-linejoin="round"/><path d="M20 46C14 30 30 22 32 32C33 38 27 39 26 35" fill="none" stroke="#e3b448" stroke-width="3" stroke-linecap="round"/>`,
+};
+CROWN.d = `<path d="M8 78H52V12H44V50H8Z" fill="#b2432a" stroke="#2b1e10" stroke-width="3" stroke-linejoin="round"/><path d="M14 50C16 32 22 20 26 14C30 20 36 32 38 50Z" fill="#fbf7ec" stroke="#2b1e10" stroke-width="3" stroke-linejoin="round"/><circle cx="26" cy="12" r="4" fill="#fbf7ec" stroke="#2b1e10" stroke-width="2.5"/><path d="M20 50C14 36 4 34 6 26" fill="none" stroke="#e3b448" stroke-width="3" stroke-linecap="round"/>`;
+const crownSVG = (t, size = 60) => `<svg viewBox="0 0 60 80" width="${size}" height="${size * 4 / 3}" aria-hidden="true">${CROWN[t]}</svg>`;
+const mapSVG = () => `<svg class="map" viewBox="0 0 400 500" role="img" aria-label="Карта Древнего Египта">
+  <rect width="400" height="500" fill="url(#sand)"/>
+  <rect class="redland" width="400" height="500"/>
+  <path class="sea" d="M0 0H400V58C360 66 330 54 290 64C260 72 240 60 205 68C170 76 150 62 110 70C70 78 40 64 0 72Z"/>
+  <path class="sea" d="M300 112C318 150 334 186 350 222C366 258 382 294 400 330V236C384 206 362 168 340 132C330 116 318 104 306 96Z"/>
+  <text class="sea-t" x="200" y="34" text-anchor="middle">Средиземное море</text>
+  <text class="sea-t" transform="translate(372 236) rotate(58)" text-anchor="middle" style="font-size:12px">Красное море</text>
+  <path class="valley" d="${NILE}"/><path class="delta" d="${DELTA}"/>
+  <path class="upper" d="M232 500C238 480 244 460 236 440C226 412 206 392 212 362C218 334 222 310 210 286C198 260 214 236 210 210C206 184 202 160 201 140"/>
+  <path class="lower" d="${DELTA}"/>
+  <path class="nile" pathLength="1" d="${NILE}"/>
+  <path class="branch" d="M200 128L160 72M200 128L203 68M200 128L244 65"/>
+  <g class="nomes"><path d="M190 176H222M192 222H230M192 262H228M196 304H232M192 340H230M196 380H232M208 424H246M216 462H252"/></g>
+  <g class="cat"><path d="M226 470h26M224 478h28M228 486h22"/></g>
+  <g class="flow"><path d="M232 456l6-6 6 6"/><path d="M206 372l6-6 6 6"/><path d="M204 262l6-6 6 6"/><path d="M196 186l6-6 6 6"/></g>
+  <text class="l-nile" x="250" y="330" style="font-size:16px;font-weight:800;fill:var(--nile)">Нил</text>
+  <g class="cat"><text x="260" y="482" style="font-size:12px">пороги</text></g>
+  <g class="l-desert"><text x="92" y="270" text-anchor="middle" style="font-size:15px;font-weight:800;fill:#7a2c16">ПУСТЫНЯ</text><text x="92" y="288" text-anchor="middle" style="font-size:12px;fill:#7a2c16">«Красная земля»</text>
+    <text x="300" y="420" text-anchor="middle" style="font-size:15px;font-weight:800;fill:#7a2c16">ПУСТЫНЯ</text></g>
+  <g class="l-black">${ltag(300, 300, 'Та-Кемет — «Чёрная земля»', '', 184)}</g>
+  ${shield(90, 98, 'море', 70)}${shield(92, 330, 'пустыня', 96)}${shield(318, 452, 'пустыня', 96)}${shield(300, 494, 'пороги Нила', 120)}
+  <g class="l-up">${ltag(110, 430, 'Верхний Египет', '', 130)}</g>
+  <g class="l-low">${ltag(84, 132, 'Нижний Египет', '', 124)}</g>
+  <g class="crw" transform="translate(262 380) scale(.62)">${CROWN.w}</g>
+  <g class="crr" transform="translate(252 82) scale(.55)">${CROWN.r}</g>
+  <g class="crd" transform="translate(240 120) scale(.7)">${CROWN.d}</g>
+  <g class="memphis" transform="translate(200 140)"><circle r="6" fill="#b2432a" stroke="#fff" stroke-width="2"/><text x="-10" y="5" text-anchor="end" style="font-weight:800">Мемфис</text></g>
+  <g transform="translate(372 470)"><path d="M0 -18L6 0H-6Z" fill="#2b1e10"/><text y="16" text-anchor="middle" style="font-weight:800">С</text></g>
+</svg>`;
+// one class per state of the map
+const mapState = (svg, st) => ['river', 'flow-on', 'desert', 'flood', 'silt', 'green', 'shield-on', 'nomes-on', 'up', 'low', 'memphis-on', 'unite']
+  .forEach(c => svg.classList.toggle(c, !!st[c]));
+
+// ---------- Question 1 ----------
+const EP1 = [
+  { st: {}, say: 'Это северо-восток Африки. Вокруг — песок и камни. Дождь здесь идёт всего несколько раз в год.' },
+  { do: 'Покажи реку', st: { river: 1, 'flow-on': 1 }, say: 'Через пустыню течёт <b>Нил</b> — одна из самых длинных рек мира. Он течёт <b>с юга на север</b> и впадает в Средиземное море.' },
+  { do: 'Что вокруг реки?', st: { desert: 1, 'flow-on': 0 }, say: 'Слева и справа — пустыня. Египтяне называли её <b>«Красной землёй»</b>. Там ничего не растёт.' },
+  { do: 'Наступает лето', st: { flood: 1 }, say: 'Каждое лето далеко на юге, в горах, идут сильные дожди. Нил переполняется и <b>разливается</b>: вода затапливает берега.', q: 1 },
+  { do: 'Наступает осень', st: { flood: 0, silt: 1 }, say: 'Осенью вода уходит. На полях остаётся <b>ил</b> — жирная чёрная земля. Поэтому египтяне звали свою страну <b>Та-Кемет — «Чёрная земля»</b>.' },
+  { do: 'Посей зерно', st: { silt: 0, green: 1 }, say: 'На иле всё растёт отлично: пшеница, ячмень, лён. Древнегреческий историк Геродот назвал Египет <b>«даром Нила»</b>.' },
+  { do: 'Кто защищает Египет?', st: { 'shield-on': 1 }, say: 'Египет защищала сама природа: на севере — <b>море</b>, по сторонам — <b>пустыни</b>, на юге — <b>пороги</b>, камни в реке. Врагам сюда трудно добраться.' },
+];
+const Q1 = { q: 'Как думаешь, что принесёт египтянам разлив?', o: ['Беду: вода смоет поля', 'Пользу: вода и ил сделают землю плодородной', 'Ничего: вода быстро высохнет'], r: 1,
+  why: 'Разлива ждали как праздника. Вода напитывает землю, а потом оставляет на ней плодородный ил. Если разлив был маленьким, наступал голод.' };
+{
+  const sec = $('#e1');
+  $('#map1').innerHTML = mapSVG();
+  const svg = $('#map1 svg');
+  let a1 = null;
+  const show = k => {
+    mapState(svg, acc(EP1, k));
+    $('#say1').innerHTML = EP1[k].say;
+    if (EP1[k].q) ask($('#ask1'), Q1, a1, i => { a1 = i; sec._step.sync(); }); else $('#ask1').innerHTML = '';
+    const last = k === EP1.length - 1;
+    concl($('#c1'), last ? 'Без Нила Египет был бы пустыней. Река дарила воду, плодородный ил и удобную дорогу для лодок. Поэтому Египет называют «даром Нила».' : '');
+    if (last) seen(sec);
+  };
+  sec._step = stepper($('.bar', sec), EP1.length, show, k => EP1[k].do, k => !!EP1[k].q && a1 == null);
+  sec._reset = () => { a1 = null; sec._step.go(0, true); };
+}
+
+// ---------- Question 2 ----------
+// the shadoof: a beam on a post (pivot 170,70), a bucket on the long arm over the river, a stone on the short arm
+const shadSVG = `<svg class="shad" viewBox="0 0 360 230" role="img" aria-label="Шадуф у реки">
+  <rect width="360" height="230" fill="url(#sky)"/>
+  <path d="M0 192H112V150H360V230H0Z" fill="#c9a362"/>
+  <path d="M0 190C20 186 40 194 60 190S100 186 112 190V230H0Z" fill="#4f8fc9"/>
+  <path class="canal" d="M112 152H262"/>
+  <rect class="crop" x="262" y="140" width="98" height="14" fill="#a88a52"/>
+  <g class="crops"></g>
+  <rect x="166" y="70" width="8" height="82" fill="#7b5a2e"/>
+  <g class="beam"><path d="M45 70H230" stroke="#5c4127" stroke-width="6" stroke-linecap="round"/><circle cx="234" cy="70" r="13" fill="#8a8178" stroke="#2b1e10" stroke-width="2"/></g>
+  <g class="bucket"><path class="rope" d="M50 70V112" stroke="#2b1e10" stroke-width="1.8"/><path d="M40 112H60L57 132H43Z" fill="#a0522d" stroke="#2b1e10" stroke-width="2"/></g>
+  <path class="stream" pathLength="1" d="M60 98C88 92 106 122 114 150"/>
+  <circle cx="170" cy="70" r="5" fill="#2b1e10"/>
+  <g transform="translate(190 112)"><circle cx="0" cy="0" r="7" fill="#8a5a3a"/><path d="M0 7V28M0 13L-10 2M0 13L-12 22M0 28L-7 40M0 28L7 40" stroke="#8a5a3a" stroke-width="4" stroke-linecap="round"/></g>
+  <text x="300" y="176" text-anchor="middle" style="font:700 12px var(--body);fill:var(--fg)">поле</text>
+  <text x="40" y="214" style="font:700 12px var(--body);fill:#fff">Нил</text>
+</svg>`;
+// three positions of the beam: rest, dipped into the river, lifted to pour
+const SHAD = [
+  { a: 0, by: 0, t: 'Опустить ведро в реку', say: 'Шадуф — это длинный шест на столбе. На одном конце — ведро, на другом — тяжёлый камень.' },
+  { a: 22, by: 50, t: 'Поднять ведро', say: 'Земледелец тянет шест вниз — ведро набирает воду.' },
+  { a: -14, by: -28, t: 'Вылить воду в канал', say: 'Камень-противовес тянет свой конец вниз, и полное ведро <b>легко поднимается</b>.' },
+];
+const YEAR = [
+  ['Нил разливается и затапливает поля', 'Ахет — разлив'],
+  ['Вода уходит, на полях остаётся ил', 'Ахет — разлив'],
+  ['Землю пашут и бросают в неё зерно', 'Перет — всходы'],
+  ['Поля поливают из каналов шадуфом', 'Перет — всходы'],
+  ['Пшеницу и ячмень жнут серпами', 'Шему — жатва'],
+  ['Часть урожая отдают в налог фараону', 'Шему — жатва'],
+];
+const POOL2 = [3, 0, 5, 2, 4, 1];
+{
+  const sec = $('#e2');
+  $('#shad').innerHTML = shadSVG;
+  const svg = $('#shad svg'), beam = $('.beam', svg), bucket = $('.bucket', svg);
+  let pos = 0, water = 0, placed = 0, shadDone = false, yearDone = false;
+  // the end of the long arm (120 units from the pivot) moves on a circle; the bucket hangs from it straight down
+  const setBeam = a => {
+    beam.style.transform = `rotate(${-a}deg)`;
+    const r = a * Math.PI / 180, x = 170 - 120 * Math.cos(r), y = 70 + 120 * Math.sin(r);
+    bucket.style.transform = `translate(${x - 50}px, ${y - 70}px)`;
+  };
+  const crops = n => $('.crops', svg).innerHTML = Array.from({ length: n * 4 }, (_, i) => `<path d="M${268 + i * 8} 140v-${8 + (i % 3) * 3}" stroke="#4f8a2c" stroke-width="3" stroke-linecap="round"/>`).join('');
+  const draw = () => {
+    setBeam(SHAD[pos].a);
+    svg.classList.toggle('pour', false);
+    $('#shadBtn').innerHTML = water >= 3 ? '<span class="go">↺</span><span>Полить ещё раз</span>' : nextLabel(SHAD[pos].t);
+    $$('#buckets i').forEach((b, i) => b.classList.toggle('on', i < water));
+    $('.canal', svg).classList.toggle('wet', water > 0);
+    $('.crop', svg).style.fill = water >= 3 ? '#6aa33c' : water ? '#9a8c52' : '#a88a52';
+    crops(water);
+  };
+  $('#shadBtn').onclick = () => {
+    if (water >= 3) { water = 0; pos = 0; draw(); $('#say2').innerHTML = SHAD[0].say; return; }
+    if (pos < 2) { pos++; draw(); $('#say2').innerHTML = SHAD[pos].say; return; }
+    // pour: the water runs into the canal, then the beam comes back to rest
+    svg.classList.add('pour');
+    water++;
+    pos = 0;
+    setTimeout(() => {
+      draw();
+      $('#say2').innerHTML = water >= 3 ? '<b>Поле полито!</b> Шадуф помогал поднять воду туда, куда разлив не доходил. Один человек поднимал так сотни вёдер за день.'
+        : `Вода бежит по каналу к полю. Вёдер: <b>${water} из 3</b>.`;
+      if (water >= 3) { shadDone = true; check(); }
+    }, 650);
+  };
+  const drawYear = () => {
+    $('#slots').innerHTML = YEAR.map((y, i) => i < placed ? `<div class="slot full">${y[0]}<span class="se">${y[1]}</span></div>` : `<div class="slot"></div>`).join('');
+    $('#pool').innerHTML = POOL2.filter(i => i >= placed).map(i => `<button class="card-btn" data-i="${i}">${YEAR[i][0]}</button>`).join('');
+  };
+  const HINT2 = ['Всё начинается с реки.', 'Что остаётся, когда вода уходит?', 'Пора сажать — земля мягкая и влажная.', 'Ростки хотят пить, а разлив уже далеко.', 'Колосья созрели.', 'А теперь — делиться с фараоном.'];
+  $('#pool').onclick = e => {
+    const b = e.target.closest('.card-btn');
+    if (!b) return;
+    if (+b.dataset.i === placed) {
+      placed++;
+      $('#fb2').className = 'fb'; $('#fb2').textContent = placed === 6 ? 'Всё по порядку! Так проходил каждый год.' : '';
+      drawYear();
+      if (placed === 6) { yearDone = true; check(); }
+    } else {
+      b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      $('#fb2').className = 'fb bad'; $('#fb2').innerHTML = `<b>Пока рано.</b> Подсказка: ${HINT2[placed]}`;
+    }
+  };
+  const check = () => {
+    if (!(shadDone && yearDone)) return;
+    concl($('#c2'), 'Год египтянина делился на три времени: разлив, всходы и жатва. Жрецы заметили: разлив начинается, когда перед рассветом на небе появляется звезда Сириус. Так появился календарь — 365 дней.');
+    seen(sec);
+  };
+  sec._reset = () => { pos = 0; water = 0; placed = 0; shadDone = yearDone = false; draw(); drawYear(); $('#say2').innerHTML = SHAD[0].say; $('#fb2').textContent = ''; concl($('#c2'), ''); };
+  $('#b2-reset').onclick = sec._reset;
+}
+
+// ---------- Question 3 ----------
+const BASE3 = { river: 1, green: 1 };
+const EP3 = [
+  { st: { ...BASE3, 'nomes-on': 1 }, say: 'Сначала вдоль Нила было много маленьких областей — <b>номов</b>. В каждом номе — свой правитель, свой город и свой бог.' },
+  { do: 'Номы объединяются', st: { 'nomes-on': 0 }, say: 'Правители воевали, сильные захватывали слабых. Постепенно получилось <b>два царства</b>.', q: 1 },
+  { do: 'Покажи Верхний Египет', st: { up: 1 }, say: '<b>Верхний Египет</b> — узкая долина на юге, у верховья Нила. Его царь носил <b>белую корону</b>.' },
+  { do: 'Покажи Нижний Египет', st: { low: 1 }, say: '<b>Нижний Египет</b> — дельта Нила на севере, у моря. Его царь носил <b>красную корону</b>.' },
+  { do: 'Поход на север', st: { 'memphis-on': 1 }, say: 'Около <b>3000 года до н. э.</b> царь Верхнего Египта <b>Мина</b> (его ещё называют Менес) завоевал Нижний Египет. Новой столицей стал город <b>Мемфис</b>.' },
+  { do: 'Надень корону', st: { unite: 1 }, say: 'Египет стал единым государством. Его правитель — <b>фараон</b> — носил <b>двойную корону</b>: белую внутри красной.' },
+];
+const Q3 = { q: 'Где был Верхний Египет — на севере или на юге?', o: ['На севере, у моря: на карте это верх', 'На юге: там верховье Нила'], r: 1,
+  why: 'Названия идут по реке. Нил течёт с юга на север, поэтому юг — это верховье реки, Верхний Египет. А дельта у моря — Нижний.' };
+{
+  const sec = $('#e3');
+  $('#map3').innerHTML = mapSVG();
+  const svg = $('#map3 svg');
+  let a3 = null;
+  const show = k => {
+    mapState(svg, acc(EP3, k));
+    $('#say3').innerHTML = EP3[k].say;
+    if (EP3[k].q) ask($('#ask3'), Q3, a3, i => { a3 = i; sec._step.sync(); }); else $('#ask3').innerHTML = k >= 5 ? `<div class="army">${['w', 'r', 'd'].map((c, i) => `<span>${crownSVG(c, 26)}${['белая — юг', 'красная — север', 'двойная — весь Египет'][i]}</span>`).join('')}</div>` : '';
+    const last = k === EP3.length - 1;
+    concl($('#c3'), last ? 'Около 3000 года до н. э. царь Мина объединил Верхний и Нижний Египет. Появилось одно из первых государств на Земле — Древний Египет.' : '');
+    if (last) seen(sec);
+  };
+  sec._step = stepper($('.bar', sec), EP3.length, show, k => EP3[k].do, k => !!EP3[k].q && a3 == null);
+  sec._reset = () => { a3 = null; sec._step.go(0, true); };
+}
+
+// ---------- Question 4 ----------
+const GROUPS = [
+  { id: 0, name: 'Фараон', g: G.king, row: 0,
+    t: 'Царь, верховный жрец и главный военачальник. Египтяне считали его <b>богом на земле</b>, сыном бога солнца Ра. Вся земля Египта принадлежала фараону.',
+    chips: [[G.pschent, '<b>Двойная корона</b> — власть над Верхним и Нижним Египтом'], [G.crook, '<b>Посох-крюк</b> — забота о народе, как пастуха о стаде'], [G.flail, '<b>Плеть</b> — право наказывать']],
+    x: 'Слово «фараон» значит «великий дом». Так сначала называли царский дворец, а потом и самого царя.' },
+  { id: 1, name: 'Чиновники', g: G.scribe, row: 1,
+    t: 'Помогали фараону управлять страной. Главный — <b>визирь</b>. Вельможи правили номами, собирали налоги, судили споры. <b>Писцы</b> всё записывали и считали.',
+    x: 'Писцов называли «глазами и ушами фараона». Стать писцом было почётно: не нужно таскать тяжести.' },
+  { id: 2, name: 'Жрецы', g: G.netjer, row: 1,
+    t: 'Служили богам в храмах: совершали обряды, приносили жертвы, устраивали праздники. Жрецы много знали: умели считать, лечить, наблюдать звёзды.',
+    x: 'Храмам принадлежали поля, мастерские и стада — жрецы были очень богаты.' },
+  { id: 3, name: 'Земледельцы и ремесленники', g: G.sickle + G.pot, row: 2,
+    t: 'Их было больше всех. Земледельцы растили хлеб, ремесленники делали посуду, ткани, орудия, украшения. Именно они <b>кормили страну</b>.',
+    chips: [[G.sickle, '<b>Налог</b> — часть зерна или изделий'], [G.pyramid, '<b>Трудовая повинность</b> — строить каналы, храмы, пирамиды'], [G.soldier, '<b>Воинская повинность</b> — идти на войну']],
+    x: 'Повинность — это обязанность, которую нельзя не выполнить. За отказ строго наказывали.' },
+  { id: 4, name: 'Рабы', g: G.captive, row: 3,
+    t: 'Чаще всего — пленники с войны. Рабы были собственностью хозяина и не имели прав. Они работали в каменоломнях, рудниках, хозяйствах знати и храмов.',
+    x: 'Пленных называли «живые убитые»: раньше их убивали, а потом стали оставлять в живых, но без свободы.' },
+];
+const RIDDLES = [
+  ['Я ношу двойную корону, а в руках у меня посох и плеть.', 0],
+  ['Я сижу, скрестив ноги, и записываю, сколько зерна собрали.', 1],
+  ['Я служу в храме, приношу жертвы богам и слежу за звёздами.', 2],
+  ['Весной я сею ячмень, а когда приходит разлив — строю канал по приказу.', 3],
+  ['Меня взяли в плен на войне. Я добываю камень и ничего не имею.', 4],
+  ['Фараон поручил мне целый ном: я собираю налоги и сужу споры.', 1],
+  ['Я леплю кувшины и обжигаю их в печи. Часть отдаю в налог.', 3],
+];
+{
+  const sec = $('#e4');
+  let mode = 'learn', sel = null, viewed = new Set(), r = 0, score = 0, answered = false;
+  const rows = [[0], [1, 2], [3], [4]], K = ['30%', '9%', '6%', '4%'], W = ['36%', '64%', '84%', '100%'];
+  $('#tri').innerHTML = rows.map((ids, ri) => `<div class="row" style="width:${W[ri]}">` + ids.map(i => {
+    const g = GROUPS[i];
+    return `<button class="layer L${ri === 1 ? i : ri === 0 ? 0 : ri + 1}" data-i="${i}" style="--k:${ids.length > 1 ? (i === 1 ? K[ri] : '0px') : K[ri]};${ids.length > 1 ? (i === 1 ? 'clip-path:polygon(var(--k) 0,100% 0,100% 100%,0 100%)' : 'clip-path:polygon(0 0,calc(100% - ' + K[ri] + ') 0,100% 100%,0 100%)') : ''}">${hg(g.g)}<span>${g.name}</span></button>`;
+  }).join('') + `</div>`).join('');
+  const card = g => `<div class="box gcard">${hg(g.g, 'big')}<h3>${g.name}</h3><p>${g.t}</p>` +
+    (g.chips ? `<div class="chips">${g.chips.map(([s, t]) => `<div>${hg(s)}<span>${t}</span></div>`).join('')}</div>` : '') + `<p class="fact" style="margin-top:10px">${g.x}</p></div>`;
+  const draw = () => {
+    $('#m4-learn').setAttribute('aria-pressed', mode === 'learn');
+    $('#m4-game').setAttribute('aria-pressed', mode === 'game');
+    $('.soc', sec).classList.toggle('game', mode === 'game');
+    $$('#tri .layer').forEach(b => { b.classList.toggle('sel', mode === 'learn' && +b.dataset.i === sel); b.classList.toggle('seen', mode === 'learn' && viewed.has(+b.dataset.i)); });
+    if (mode === 'learn') {
+      $('#side4').innerHTML = sel == null ? `<div class="box"><p style="margin:0">Начни с вершины — нажми на <b>фараона</b>. Изучишь все ступени — переходи к игре «Кто я?».</p></div>` : card(GROUPS[sel]) +
+        (viewed.size === 5 ? `<p style="margin-top:12px"><button class="btn next" id="to-game">${nextLabel('Все ступени изучены — играть «Кто я?»')}</button></p>` : `<p style="color:var(--muted);margin:10px 0 0">Изучено ступеней: ${viewed.size} из 5</p>`);
+      $('#to-game') && ($('#to-game').onclick = () => { mode = 'game'; draw(); });
+    } else if (r < RIDDLES.length) {
+      $('#side4').innerHTML = `<div class="box"><p class="riddle"><small>Загадка ${r + 1} из ${RIDDLES.length} · угадано ${score}</small>«${RIDDLES[r][0]}»</p>
+        <p style="color:var(--muted);margin:0">Кто я? Нажми на ступень пирамиды.</p><div class="fb" id="fb4"></div>
+        ${answered ? `<p style="margin:12px 0 0"><button class="btn next" id="r-next">${nextLabel(r + 1 < RIDDLES.length ? 'Следующая загадка' : 'Узнать результат')}</button></p>` : ''}</div>`;
+      $('#r-next') && ($('#r-next').onclick = () => { r++; answered = false; draw(); });
+    } else {
+      $('#side4').innerHTML = `<div class="box result"><div class="hg">${G.scribe}</div><div class="score">${score} из ${RIDDLES.length}</div><div class="rank">${score === RIDDLES.length ? 'Ты знаешь египтян как визирь!' : score >= 5 ? 'Хороший писец!' : 'Перечитай ступени и попробуй снова'}</div>
+        <p><button class="btn" id="r-again">↺ Сыграть ещё раз</button></p></div>`;
+      $('#r-again').onclick = () => { r = 0; score = 0; answered = false; draw(); };
+      concl($('#c4'), 'Египетское общество похоже на пирамиду. Наверху — фараон, ниже — чиновники и жрецы. Ещё ниже — земледельцы и ремесленники: они кормили страну, платили налоги и выполняли повинности. В самом низу — рабы.');
+      seen(sec);
+    }
+  };
+  $('#tri').onclick = e => {
+    const b = e.target.closest('.layer');
+    if (!b) return;
+    const i = +b.dataset.i;
+    // on a narrow screen the card is under the pyramid: bring it into view
+    if (mode === 'learn') { sel = i; viewed.add(i); draw(); if (innerWidth <= 1180) $('#side4').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    if (answered || r >= RIDDLES.length) return;
+    const ok = RIDDLES[r][1] === i;
+    if (ok) score++;
+    answered = true;
+    draw();
+    const fb = $('#fb4');
+    fb.className = 'fb' + (ok ? '' : ' bad');
+    fb.innerHTML = ok ? `<b>Верно!</b> Это ${GROUPS[i].name.toLowerCase()}.` : `<b>Нет.</b> Правильный ответ: ${GROUPS[RIDDLES[r][1]].name.toLowerCase()}.`;
+    b.classList.remove('ok', 'no'); void b.offsetWidth; b.classList.add(ok ? 'ok' : 'no');
+    if (innerWidth <= 1180) $('#side4').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  };
+  $('#m4-learn').onclick = () => { mode = 'learn'; draw(); };
+  $('#m4-game').onclick = () => { mode = 'game'; draw(); };
+  sec._reset = () => { mode = 'learn'; sel = null; viewed = new Set(); r = 0; score = 0; answered = false; concl($('#c4'), ''); draw(); };
+}
+
+// ---------- Question 5 ----------
+const neSVG = `<svg class="ne" viewBox="0 0 460 380" role="img" aria-label="Карта: Египет и соседние страны">
+  <rect width="460" height="380" fill="url(#sand)"/>
+  <path class="opt o-kad hitt" d="M0 0H460V36C400 30 360 40 330 30C280 40 230 34 180 44C120 56 60 50 0 60Z"/>
+  <path class="sea" d="M0 60C60 50 120 56 180 44C230 34 280 40 330 30C322 70 318 100 312 130C305 150 290 162 260 168C225 175 195 172 170 178C120 186 60 180 0 188Z"/>
+  <path class="sea" d="M236 236C262 268 286 316 312 380H332C306 310 280 256 252 222Z"/>
+  <text x="130" y="120" style="fill:#fff;font-weight:700">Средиземное море</text>
+  <path d="M205 380C210 340 196 300 200 270C204 240 180 210 172 186" fill="none" stroke="#5b9a37" stroke-width="18" stroke-linecap="round"/>
+  <path d="M205 380C210 340 196 300 200 270C204 240 180 210 172 186" fill="none" stroke="#2e6fb5" stroke-width="3.5"/>
+  <path class="opt o-con hatch" d="M318 36L460 30V200L300 200L268 176C292 164 306 150 312 130Z"/>
+  <path class="opt o-con hatch" d="M150 330H262L270 380H150Z"/>
+  <text class="reg" x="96" y="262" style="fill:var(--ochre)">ЕГИПЕТ</text>
+  <text class="reg" x="20" y="226">ЛИВИЯ</text>
+  <text class="reg" x="120" y="358">НУБИЯ</text>
+  <text class="reg" x="356" y="168">ПАЛЕСТИНА</text>
+  <text class="reg" x="380" y="96">СИРИЯ</text>
+  <text class="opt o-kad reg" x="250" y="22" style="fill:#7a2c16">ХЕТТСКОЕ ЦАРСТВО</text>
+  <path class="opt o-meg march" d="M182 200C220 194 280 170 318 134"/>
+  <path class="opt o-kad march" d="M182 200C240 190 300 140 346 72"/>
+  <g class="pin opt o-meg" transform="translate(320 132)"><circle r="6"/><text x="10" y="5">Мегиддо</text></g>
+  <g class="pin opt o-kad" transform="translate(348 68)"><circle r="6"/><text x="10" y="5">Кадеш</text></g>
+  <g class="opt o-peace" transform="translate(372 46)"><rect x="-6" y="-14" width="84" height="24" rx="12" fill="#fdf7e8" stroke="#1d855a" stroke-width="2"/><text x="36" y="3" text-anchor="middle" style="font-weight:800;fill:#1d855a">мир</text></g>
+  <g class="pin opt o-abu" transform="translate(206 346)"><circle r="6" style="fill:var(--gold)"/><text x="10" y="-4">Абу-Симбел</text></g>
+  <g class="pin" transform="translate(174 190)"><circle r="5" style="fill:#2b1e10"/><text x="-8" y="16" text-anchor="end" style="font-size:11px">Мемфис</text></g>
+</svg>`;
+const EP5 = [
+  { st: { eg: 1 }, say: 'Египтяне научились делать орудия из <b>бронзы</b>. Пахать, строить и обрабатывать камень стало легче. Урожаи выросли, казна фараона наполнилась.' },
+  { do: 'Собери войско', st: { army: 1 }, say: 'У фараона появилось сильное войско. <b>Лучники</b> стреляли издалека, <b>колесницы</b> с лошадьми налетали сбоку, <b>пехота</b> с копьями завершала бой.' },
+  { do: 'В поход!', st: { meg: 1 }, say: '<b>Тутмос III</b> — фараон-завоеватель. Около 1457 года до н. э. он разбил врагов у города <b>Мегиддо</b>.' },
+  { do: 'Что завоевал Тутмос?', st: { con: 1 }, say: 'Тутмос III подчинил <b>Палестину</b>, <b>Сирию</b> и <b>Нубию</b> на юге. Оттуда везли дань: золото, кедр, коней, пленников.' },
+  { do: 'Новый враг', st: { meg: 0, kad: 1 }, say: 'Через 200 лет фараон <b>Рамсес II</b> воевал с <b>хеттами</b>. В 1274 году до н. э. у города <b>Кадеш</b> случилась огромная битва колесниц.' },
+  { do: 'Чем кончилась война?', st: { peace: 1 }, say: 'Никто не победил. Тогда Египет и хетты заключили <b>мир</b> — один из первых мирных договоров в истории.' },
+  { do: 'Что ещё сделал Рамсес?', st: { abu: 1 }, say: 'Рамсес II правил 66 лет и много строил. Самый знаменитый его храм — <b>Абу-Симбел</b>: он высечен прямо в скале, у входа — четыре огромные статуи фараона.' },
+];
+const TL = [
+  { t: 'Объединение Египта', y: -3000, l: 'ок. 3000 г. до н. э.' },
+  { t: 'Пирамида Хеопса', y: -2560, l: 'ок. 2560 г. до н. э.' },
+  { t: 'Битва при Мегиддо', y: -1457, l: 'ок. 1457 г. до н. э.' },
+  { t: 'Битва при Кадеше', y: -1274, l: '1274 г. до н. э.' },
+  { t: 'Иероглифы прочитаны', y: 1822, l: '1822 г. н. э.' },
+];
+const POOL5 = [2, 4, 0, 3, 1];
+{
+  const sec = $('#e5');
+  $('#ne').innerHTML = neSVG;
+  const svg = $('#ne svg');
+  let tlN = 0, stepDone = false, tlDone = false;
+  const show = k => {
+    const st = acc(EP5, k);
+    ['eg', 'meg', 'con', 'kad', 'peace', 'abu'].forEach(c => svg.classList.toggle('s-' + c, !!st[c]));
+    $('#say5').innerHTML = EP5[k].say;
+    $('#army5').innerHTML = st.army && k < 2 ? `<span>${hg(G.bow)} лучники</span><span>${hg(G.horse)} колесницы</span><span>${hg(G.soldier)} пехота</span>` : '';
+    if (k === EP5.length - 1) { stepDone = true; check(); }
+  };
+  sec._step = stepper($('#bar5'), EP5.length, show, k => EP5[k].do);
+  // the timeline from 3100 BC to 2030 AD; the year 1 is marked
+  const X = y => (y + 3100) / 5130 * 100;
+  const drawTL = () => {
+    $('#tl').innerHTML = `<div class="axis"></div><div class="zero" style="left:${X(0)}%"></div><span class="era" style="left:0">← до нашей эры</span><span class="era" style="left:${X(0)}%;transform:translateX(-50%)">1 год</span><span class="era" style="right:0">наша эра →</span>` +
+      TL.slice(0, tlN).map((e, i) => `<div class="mk${i % 2 ? ' dn' : ''}" style="left:${X(e.y)}%"><b>${i + 1}</b></div>`).join('');
+    $('#tll').innerHTML = TL.slice(0, tlN).map((e, i) => `<li><b class="n">${i + 1}</b><span>${e.t} — <em>${e.l}</em></span></li>`).join('');
+    $('#pool5').innerHTML = POOL5.filter(i => i >= tlN).map(i => `<button class="card-btn" data-i="${i}">${TL[i].t}<br><b style="color:var(--lapis)">${TL[i].l}</b></button>`).join('');
+  };
+  $('#pool5').onclick = e => {
+    const b = e.target.closest('.card-btn');
+    if (!b) return;
+    const i = +b.dataset.i, fb = $('#fb5');
+    if (i === tlN) {
+      tlN++; fb.className = 'fb'; fb.textContent = tlN === TL.length ? 'Всё верно! Заметь: от пирамиды Хеопса до битвы при Кадеше прошло почти 1300 лет.' : '';
+      drawTL();
+      if (tlN === TL.length) { tlDone = true; check(); }
+    } else {
+      b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+      fb.className = 'fb bad';
+      fb.innerHTML = TL[i].y > 0 ? '<b>Это наша эра</b> — совсем недавно по сравнению с фараонами. Оставь напоследок.' : `<b>Пока рано.</b> Есть событие с числом до н. э. <b>больше</b>, чем ${-TL[i].y}: оно было раньше.`;
+    }
+  };
+  const check = () => {
+    if (!(stepDone && tlDone)) return;
+    concl($('#c5'), 'Бронзовые орудия, сильное войско и походы фараонов сделали Египет могучей державой. Тутмос III расширил его границы, а Рамсес II после битвы при Кадеше заключил с хеттами мир.');
+    seen(sec);
+  };
+  sec._reset = () => { tlN = 0; stepDone = tlDone = false; $('#fb5').textContent = ''; concl($('#c5'), ''); drawTL(); sec._step.go(0, true); };
+}
+
+// ---------- Question 6 ----------
+const GODS = [
+  { n: 'Ра', g: G.ra, s: 'бог солнца', m: 'Главный бог. Днём плывёт по небу в золотой лодке, ночью — под землёй. Позже его соединили с богом Амоном: получился <b>Амон-Ра</b>.' },
+  { n: 'Осирис', g: G.seat + G.eye, s: 'царь загробного мира', m: 'По мифу, научил людей земледелию. Злой брат Сет убил его, но жена Исида оживила Осириса. С тех пор он правит царством мёртвых.' },
+  { n: 'Исида', g: G.seat + G.bread, s: 'жена Осириса', m: 'Мать бога Гора, верная жена и волшебница. Покровительница матерей и детей. Её знак — трон на голове.' },
+  { n: 'Гор', g: G.falcon, s: 'бог-сокол', m: 'Сын Осириса и Исиды. Победил злого Сета. Покровитель фараона: каждого фараона называли «живым Гором».' },
+  { n: 'Анубис', g: G.anubis, s: 'бог с головой шакала', m: 'Охраняет гробницы, помогает делать мумии и провожает умерших на суд Осириса.' },
+  { n: 'Тот', g: G.thoth, s: 'бог с головой ибиса', m: 'Бог мудрости. По преданию, научил людей письму и счёту. Покровитель писцов — поэтому его изображают с письменными принадлежностями.' },
+  { n: 'Хапи', g: G.water3, s: 'бог Нила', m: 'Бог разлива. Ему молились земледельцы, чтобы разлив был не слишком мал и не слишком велик.' },
+  { n: 'Птах', g: G.ptah, s: 'бог-мастер', m: 'Главный бог Мемфиса. Покровитель ремесленников, строителей и художников.' },
+];
+const PRAY = [
+  ['Писец Нехт завтра сдаёт экзамен в школе писцов.', 5, [5, 0, 7, 4]],
+  ['Земледелец ждёт разлива: в прошлом году воды было мало.', 6, [3, 6, 5, 1]],
+  ['Мастер начинает вырезать статую для храма в Мемфисе.', 7, [4, 2, 7, 6]],
+  ['Мать просит, чтобы её малыш был здоров.', 2, [2, 5, 4, 3]],
+  ['Жрецы готовят мумию умершего вельможи.', 4, [6, 4, 0, 7]],
+  ['Фараон идёт в поход и просит силы у своего покровителя-сокола.', 3, [1, 7, 3, 5]],
+  ['Наступает утро. Египтяне славят солнце, которое снова поднялось над землёй.', 0, [0, 6, 2, 4]],
+];
+{
+  const sec = $('#e6');
+  $('#gods').innerHTML = GODS.map((x, i) => `<button class="god" data-i="${i}" aria-expanded="false">${hg(x.g)}<b>${x.n}</b><small>${x.s}</small><span class="more">${x.m}</span></button>`).join('');
+  $('#gods').onclick = e => { const b = e.target.closest('.god'); if (b) { const o = !b.classList.contains('open'); b.classList.toggle('open', o); b.setAttribute('aria-expanded', o); } };
+  let p = 0, score = 0, pick = null;
+  const draw = () => {
+    if (p >= PRAY.length) {
+      $('#pray').innerHTML = `<div class="result"><div class="hg">${G.netjer}</div><div class="score">${score} из ${PRAY.length}</div><div class="rank">${score >= 6 ? 'Ты разбираешься в богах, как жрец!' : 'Загляни в карточки богов и попробуй ещё раз'}</div><p><button class="btn" id="p-again">↺ Ещё раз</button></p></div>`;
+      $('#p-again').onclick = () => { p = 0; score = 0; pick = null; draw(); };
+      $('#fact6').hidden = false;
+      concl($('#c6'), 'Египтяне почитали много богов, и у каждого было своё дело. Главным был бог солнца Ра. Религия была во всём: в праздниках, работе, законах и даже в том, как хоронили людей.');
+      seen(sec);
+      return;
+    }
+    const [t, r, opts] = PRAY[p];
+    $('#pray').innerHTML = `<p class="sit"><span>История ${p + 1} из ${PRAY.length}</span>${t}</p><div class="godch">` +
+      opts.map(i => `<button class="choice${pick != null ? (i === r ? ' right' : i === pick ? ' wrong' : ' dim') : ''}" data-i="${i}" ${pick != null ? 'disabled' : ''}>${hg(GODS[i].g)}<span>${GODS[i].n}</span></button>`).join('') + `</div>` +
+      (pick != null ? `<div class="fb${pick === r ? '' : ' bad'}"><b>${pick === r ? 'Верно!' : 'Не он.'}</b> ${GODS[r].n} — ${GODS[r].s}. ${GODS[r].m.split('. ')[0]}.</div><p style="margin:12px 0 0"><button class="btn next" id="p-next">${nextLabel(p + 1 < PRAY.length ? 'Следующая история' : 'Узнать результат')}</button></p>` : '');
+    $('#p-next') && ($('#p-next').onclick = () => { p++; pick = null; draw(); });
+  };
+  $('#pray').onclick = e => { const b = e.target.closest('.choice'); if (b && !b.disabled && pick == null) { pick = +b.dataset.i; if (pick === PRAY[p][1]) score++; draw(); } };
+  sec._reset = () => { p = 0; score = 0; pick = null; $('#fact6').hidden = true; concl($('#c6'), ''); $$('#gods .god').forEach(b => b.classList.remove('open')); draw(); };
+}
+
+// ---------- Question 7 ----------
+// the scales: a beam turning around (160,64); the pans hang from its ends (95 units away) and stay level
+const scaleSVG = `<svg class="scale" viewBox="0 0 320 270" role="img" aria-label="Весы суда Осириса">
+  <rect class="iaru" x="0" y="236" width="320" height="34" fill="#5b9a37"/>
+  <g class="iaru">${Array.from({ length: 16 }, (_, i) => `<path d="M${10 + i * 20} 246v-14M${16 + i * 20} 248v-10" stroke="#e3b448" stroke-width="2.5" stroke-linecap="round"/>`).join('')}</g>
+  <ellipse class="ok-glow" cx="160" cy="130" rx="150" ry="110" fill="rgba(227,180,72,.25)"/>
+  <path d="M120 236H200L186 220H134Z" fill="#7b5a2e"/>
+  <rect x="156" y="60" width="8" height="162" fill="#b07d14"/>
+  <path d="M152 52H168L160 38Z" fill="#e3b448" stroke="#2b1e10" stroke-width="1.5"/>
+  <g class="beam"><path d="M62 64H258" stroke="#8f5f0c" stroke-width="7" stroke-linecap="round"/></g>
+  <circle cx="160" cy="64" r="6" fill="#2b1e10"/>
+  <g class="pan pl"><path d="M0 0L-32 70M0 0L32 70" stroke="#2b1e10" stroke-width="1.6"/><path d="M-40 70H40C34 84 -34 84 -40 70Z" fill="#e3b448" stroke="#8f5f0c" stroke-width="2"/>
+    <g class="heart"><path d="M-12 54C-14 40 14 40 12 54C12 63 6 68 0 70C-6 68 -12 63 -12 54Z" fill="#b2432a" stroke="#2b1e10" stroke-width="1.8"/><path d="M-12 50C-20 48 -20 42 -14 42M12 50C20 48 20 42 14 42" fill="none" stroke="#2b1e10" stroke-width="1.8"/><rect x="-5" y="38" width="10" height="5" rx="1" fill="#b2432a" stroke="#2b1e10" stroke-width="1.5"/></g>
+    <text x="0" y="98" text-anchor="middle" style="font:700 12px var(--body)">сердце</text></g>
+  <g class="pan pr"><path d="M0 0L-32 70M0 0L32 70" stroke="#2b1e10" stroke-width="1.6"/><path d="M-40 70H40C34 84 -34 84 -40 70Z" fill="#e3b448" stroke="#8f5f0c" stroke-width="2"/>
+    <g class="feather"><path d="M2 70C-2 52 -6 40 -2 24C8 32 12 50 6 70Z" fill="#fbf7ec" stroke="#2b1e10" stroke-width="1.8"/><path d="M2 70C2 54 2 40 0 28" stroke="#2b1e10" stroke-width="1.2" fill="none"/></g>
+    <text x="0" y="98" text-anchor="middle" style="font:700 12px var(--body)">перо Маат</text></g>
+</svg>`;
+const EP7 = [
+  { st: { a: 1, h: 0, f: 0 }, say: 'Египтяне верили: у человека есть душа, и после смерти она живёт дальше. Но ей нужно тело. Поэтому тело сохраняли — делали <b>мумию</b>.' },
+  { do: 'Кто ведёт на суд?', st: { a: 2 }, say: 'Бог с головой шакала <b>Анубис</b> ведёт умершего в зал суда. Там на троне сидит <b>Осирис</b> — владыка царства мёртвых.' },
+  { do: 'Что на весах?', st: { h: 1, f: 1 }, say: 'На одну чашу весов кладут <b>сердце</b> человека. Египтяне думали, что в сердце живут мысли и поступки. На другую — <b>перо богини Маат</b>, знак правды.' },
+  { do: 'Что скажет умерший?', st: { sp: 1 }, say: 'Умерший перечисляет богам, какого зла он <b>не</b> делал.' },
+  { do: 'Взвесить!', st: { sp: 0, glow: 1, t: 1 }, say: 'Если сердце не тяжелее пера — человек жил честно. Бог мудрости <b>Тот</b> записывает решение.' },
+  { do: 'Что дальше?', st: { iaru: 1 }, say: 'Оправданный уходит в <b>поля Иару</b> — прекрасную страну, похожую на Египет, где всегда урожай. А сердце злодея съедает чудовище <b>Амат</b>.' },
+];
+const DEEDS = [
+  ['Сосед просит воды из твоего канала для своего поля.', ['Поделиться водой', 'Перекрыть канал']],
+  ['Торговец на рынке ошибся и дал тебе лишнего зерна.', ['Вернуть зерно', 'Промолчать и забрать']],
+  ['Писец спрашивает, сколько ты собрал урожая для налога.', ['Сказать правду', 'Скрыть часть']],
+  ['Старик несёт тяжёлый кувшин с водой.', ['Помочь донести', 'Пройти мимо']],
+];
+{
+  const sec = $('#e7');
+  $('#court').innerHTML = `<div class="who" id="w-anubis">${hg(G.anubis)}Анубис</div>${scaleSVG}<div class="who" id="w-thoth">${hg(G.thoth)}Тот</div>`;
+  const svg = $('#court svg'), beam = $('.beam', svg), pl = $('.pl', svg), pr = $('.pr', svg);
+  const tilt = deg => {
+    beam.style.transform = `rotate(${-deg}deg)`;
+    const r = deg * Math.PI / 180, dx = 95 * Math.cos(r), dy = 95 * Math.sin(r);
+    pl.style.transform = `translate(${160 - dx}px, ${64 + dy}px)`;
+    pr.style.transform = `translate(${160 + dx}px, ${64 - dy}px)`;
+  };
+  const choice = DEEDS.map(() => null);
+  const show = k => {
+    const st = acc(EP7, k);
+    tilt(0);
+    $('.heart', svg).style.opacity = st.h ? 1 : 0;
+    $('.feather', svg).style.opacity = st.f ? 1 : 0;
+    svg.classList.toggle('glow', !!st.glow);
+    svg.classList.toggle('iaru-on', !!st.iaru);
+    $('#w-anubis').classList.toggle('dim', st.a !== 2 && k !== 0);
+    $('#w-thoth').classList.toggle('dim', !st.t);
+    $('#say7').innerHTML = EP7[k].say;
+    $('#speech7').innerHTML = st.sp ? '«Я не крал. Я не лгал. Я не обижал слабых. Я не отнимал хлеб у голодного. Я не перекрывал воду, текущую к чужому полю».' : '';
+    const last = k === EP7.length - 1;
+    $('#try7').hidden = !last;
+    if (last) weigh();
+  };
+  // the heavier the heart, the lower its pan: 7 degrees for each bad deed
+  const weigh = () => {
+    const bad = choice.filter(c => c === 1).length, all = choice.every(c => c != null);
+    tilt(bad * 7);
+    svg.classList.toggle('glow', all && !bad);
+    $('#deeds').innerHTML = DEEDS.map(([t, o], i) => `<div class="deed"><p>${t}</p><div class="ch">${o.map((x, j) => `<button class="choice" data-d="${i}" data-j="${j}" aria-pressed="${choice[i] === j}">${x}</button>`).join('')}</div></div>`).join('');
+    const v = $('#verdict');
+    v.className = 'verdict' + (all ? (bad ? ' bad' : ' good') : '');
+    v.innerHTML = !all ? '' : bad ? `Сердце тяжелее пера: нечестных поступков — ${bad}. Египтяне боялись такого суда и старались жить честно. Попробуй изменить выбор.`
+      : 'Сердце легче пера! Боги говорят: «Ты жил по правде». Путь в поля Иару открыт.';
+    if (all && !bad) {
+      concl($('#c7'), 'Египтяне верили в жизнь после смерти. На суде Осириса сердце человека взвешивали против пера богини Маат. Чтобы пройти суд, нужно было жить честно и по правде.');
+      seen(sec);
+    }
+  };
+  $('#deeds').onclick = e => { const b = e.target.closest('.choice'); if (b) { choice[+b.dataset.d] = +b.dataset.j; weigh(); } };
+  sec._step = stepper($('.bar', sec), EP7.length, show, k => EP7[k].do);
+  sec._reset = () => { choice.fill(null); concl($('#c7'), ''); $('#verdict').textContent = ''; sec._step.go(0, true); };
+}
+
+// ---------- Question 8 ----------
+// the pyramid: apex (300,60), base 160..440 at y=250, ten rows of 19 units
+const pyrSVG = (() => {
+  const hw = y => 140 * (y - 60) / 190, rows = [];
+  for (let i = 0; i < 10; i++) {
+    const yb = 250 - 19 * i, yt = yb - 19, a = hw(yb), b = hw(yt);
+    const lines = [];
+    if (i < 9) for (let x = 300 - a + 14 + (i % 2) * 10; x < 300 + a - 8; x += 22) lines.push(`<line x1="${x}" y1="${yb}" x2="${x}" y2="${yt}"/>`);
+    rows.push(`<g class="row${i === 9 ? ' cap' : ''}" data-r="${i}"><polygon points="${300 - a},${yb} ${300 + a},${yb} ${300 + b},${yt} ${300 - b},${yt}"/>${lines.join('')}</g>`);
+  }
+  return `<svg class="pyr" viewBox="0 0 520 300" role="img" aria-label="Строительство пирамиды">
+  <rect width="520" height="300" fill="url(#sky)"/>
+  <circle cx="74" cy="52" r="24" fill="#f7c948"/>
+  <rect y="250" width="520" height="50" fill="#e2c48a"/>
+  <path d="M0 274C30 268 60 280 90 274S150 268 190 276V300H0Z" fill="#4f8fc9"/>
+  <polygon class="plan" points="160,250 440,250 300,60"/>
+  ${rows.join('')}
+  <g class="opt o-quarry"><rect x="452" y="232" width="22" height="18" fill="#dcb86f" stroke="#a7823f"/><rect x="476" y="232" width="22" height="18" fill="#dcb86f" stroke="#a7823f"/><rect x="464" y="214" width="22" height="18" fill="#dcb86f" stroke="#a7823f"/><text x="476" y="268" text-anchor="middle">каменоломня</text></g>
+  <g class="opt o-boat"><g class="boatg"><path d="M30 278H110L100 290H40Z" fill="#7b5a2e"/><rect x="58" y="264" width="24" height="14" fill="#dcb86f" stroke="#a7823f"/><path d="M70 264V240" stroke="#5c4127" stroke-width="2"/></g></g>
+  <g class="opt o-sled"><path d="M150 250L232 196L240 206L166 250Z" fill="#b8954f"/><g class="sledg"><rect x="158" y="226" width="20" height="14" fill="#dcb86f" stroke="#a7823f"/><path d="M154 242H182" stroke="#5c4127" stroke-width="3"/><circle cx="194" cy="226" r="2.5" fill="#5c4127"/><circle cx="202" cy="221" r="2.5" fill="#5c4127"/><circle cx="210" cy="216" r="2.5" fill="#5c4127"/></g></g>
+  <g class="opt o-work">${Array.from({ length: 14 }, (_, i) => `<circle cx="${180 + i * 17}" cy="${256 + (i % 3) * 3}" r="2.2" fill="#5c4127"/>`).join('')}</g>
+  <g class="opt o-big"><rect x="460" y="62" width="40" height="188" fill="#8fa3b8" stroke="#4b5d70"/>${Array.from({ length: 16 }, (_, i) => `<path d="M466 ${70 + i * 11}h8M486 ${70 + i * 11}h8" stroke="#dfe8f2" stroke-width="3"/>`).join('')}<text x="480" y="56" text-anchor="middle" style="font-size:11.5px">50 этажей</text>
+    <path d="M300 54V44" stroke="#2b1e10"/><text x="300" y="38" text-anchor="middle" style="font-weight:800">146 м</text></g>
+  <g class="opt o-wonder"><text x="300" y="286" text-anchor="middle" style="font-weight:800;fill:var(--ochre)">одно из семи чудес света</text></g>
+</svg>`;
+})();
+const EP8 = [
+  { st: { rows: 0 }, say: 'Египтяне верили, что фараон и после смерти живёт и правит. Ему нужен вечный дом. Самую большую пирамиду построили для фараона <b>Хеопса</b> (Хуфу) около <b>2560 года до н. э.</b>' },
+  { do: 'Добудь камень', st: { rows: 1, quarry: 1 }, say: 'Каменные глыбы вырубали в <b>каменоломнях</b> медными долотами и деревянными клиньями.', n: [['2,3 млн', 'каменных блоков']] },
+  { do: 'Привези камень', st: { rows: 2, boat: 1 }, say: 'Тяжёлые глыбы везли <b>по Нилу на лодках</b>. Особенно удобно — в разлив, когда вода подходит близко к стройке.', n: [['2,5 т', 'весит блок — как две машины']] },
+  { do: 'Подними наверх', st: { rows: 4, sled: 1 }, say: 'На берегу глыбы ставили на <b>деревянные сани</b> и тащили по насыпям. Песок перед санями поливали водой, чтобы они легче скользили.' },
+  { do: 'Позови строителей', st: { rows: 7, work: 1 }, say: 'Строили около <b>20 лет</b>. Работали тысячи людей: мастера-каменщики и земледельцы — они выполняли трудовую повинность в разлив, когда поля под водой.', n: [['20 лет', 'шла стройка']] },
+  { do: 'Поставь вершину', st: { rows: 10, quarry: 0, boat: 0, sled: 0 }, say: 'На вершину ставили камень-<b>пирамидион</b>. Снаружи пирамиду облицевали гладким белым известняком — она сияла на солнце.' },
+  { do: 'Насколько она большая?', st: { big: 1 }, say: 'Высота пирамиды — <b>146 метров</b>, как дом в 50 этажей. Египтяне мерили её в <b>локтях</b>: 280 локтей. Почти 4000 лет это было самое высокое здание на Земле.', n: [['146 м', 'высота'], ['280', 'локтей']] },
+  { do: 'А что сейчас?', st: { wonder: 1 }, say: 'Пирамида Хеопса — <b>одно из семи чудес света</b>, и единственное, которое дожило до наших дней.' },
+];
+{
+  const sec = $('#e8');
+  $('#pyr').innerHTML = pyrSVG;
+  const svg = $('#pyr svg');
+  const show = k => {
+    const st = acc(EP8, k);
+    $$('.row', svg).forEach(r => r.classList.toggle('on', +r.dataset.r < st.rows));
+    ['quarry', 'boat', 'sled', 'work', 'big', 'wonder'].forEach(c => svg.classList.toggle('s-' + c, !!st[c]));
+    $('#say8').innerHTML = EP8[k].say;
+    $('#nums8').innerHTML = EP8.slice(0, k + 1).flatMap(s => s.n || []).map(([b, t]) => `<div class="num"><b>${b}</b><span>${t}</span></div>`).join('');
+    const last = k === EP8.length - 1;
+    concl($('#c8'), last ? 'Пирамиды — гробницы фараонов. Их строили тысячи людей много лет, без машин: камень везли по Нилу и тащили на санях. Пирамида Хеопса — единственное сохранившееся чудо света.' : '');
+    if (last) seen(sec);
+  };
+  sec._step = stepper($('.bar', sec), EP8.length, show, k => EP8[k].do);
+  sec._reset = () => sec._step.go(0, true);
+}
+
+// ---------- Question 9 ----------
+const PTOL = [[G.stool, 'П'], [G.bread, 'Т'], [G.lasso, 'О'], [G.lion, 'Л'], [G.owl, 'М'], [G.reeds, 'И'], [G.cloth, 'С']];
+const stoneSVG = `<svg class="stone" viewBox="0 0 300 340" role="img" aria-label="Розеттский камень">
+  <path d="M40 30L120 8L250 22L276 70L282 320H20L24 60Z" fill="#4a4a50" stroke="#2a2a2e" stroke-width="3"/>
+  <g class="band"><text x="150" y="58" text-anchor="middle" class="hg" style="font-size:20px;fill:#e8e2d4">${G.owl}${G.water}${G.reed}${G.sun}${G.ankh}${G.bread}${G.falcon}${G.water}</text>
+    <text x="150" y="84" text-anchor="middle" class="hg" style="font-size:20px;fill:#e8e2d4">${G.reed}${G.cobra}${G.netjer}${G.mouth}${G.basket}${G.heart}${G.scarab}</text>
+    <rect x="186" y="96" width="76" height="26" rx="13" fill="none" stroke="#e8e2d4" stroke-width="2"/>
+    <text x="224" y="115" text-anchor="middle" class="hg" style="font-size:15px;fill:#e8e2d4">${PTOL.map(p => p[0]).join('')}</text>
+    <text x="110" y="116" text-anchor="middle" class="hg" style="font-size:20px;fill:#e8e2d4">${G.vulture}${G.hand}${G.water}${G.bread}</text></g>
+  <g class="band"><path d="M40 160c10-6 18 6 28 0s18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0M40 178c10-6 18 6 28 0s18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0M40 196c10-6 18 6 28 0s18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0 18 6 28 0" fill="none" stroke="#d8d0be" stroke-width="2"/></g>
+  <g class="band"><text x="150" y="240" text-anchor="middle" style="font:600 13px Georgia,serif;fill:#e8e2d4;letter-spacing:1px">ΒΑΣΙΛΕΥΟΝΤΟΣ ΤΟΥ ΝΕΟΥ</text>
+    <text x="150" y="262" text-anchor="middle" style="font:600 13px Georgia,serif;fill:#e8e2d4;letter-spacing:1px">ΚΑΙ ΠΑΡΑΛΑΒΟΝΤΟΣ ΤΗΝ</text>
+    <text x="150" y="284" text-anchor="middle" style="font:600 13px Georgia,serif;fill:#e8e2d4;letter-spacing:1px">ΒΑΣΙΛΕΙΑΝ <tspan class="gr-p">ΠΤΟΛΕΜΑΙΟΣ</tspan></text></g>
+  <rect class="hl b" x="30" y="30" width="242" height="100" rx="6"/><rect class="hl b" x="30" y="146" width="242" height="62" rx="6"/><rect class="hl b" x="30" y="222" width="242" height="72" rx="6"/>
+  <rect class="hl c" x="182" y="92" width="84" height="34" rx="16"/><rect class="hl g" x="148" y="270" width="116" height="20" rx="6"/>
+  <g class="lbl"><rect x="8" y="122" width="96" height="20" rx="10" fill="#fdf7e8"/><text x="56" y="136" text-anchor="middle">иероглифы</text>
+    <rect x="8" y="200" width="96" height="20" rx="10" fill="#fdf7e8"/><text x="56" y="214" text-anchor="middle">демотическое</text>
+    <rect x="8" y="296" width="96" height="20" rx="10" fill="#fdf7e8"/><text x="56" y="310" text-anchor="middle">греческое</text></g>
+  <text class="q" x="150" y="190" text-anchor="middle">?</text>
+</svg>`;
+const EP9 = [
+  { st: {}, say: 'Иероглифы появились около <b>3000 года до н. э.</b> Знаков было больше 700. Писали тростниковой палочкой на <b>папирусе</b> — «бумаге» из стеблей тростника.' },
+  { do: 'Что случилось потом?', st: { forgot: 1 }, say: 'Прошли века. Египтом правили греки, римляне, арабы. Иероглифы забыли: почти <b>1500 лет</b> никто не мог их прочитать.' },
+  { do: 'Находка!', st: { forgot: 0 }, say: 'В <b>1799 году</b> солдаты армии Наполеона рыли укрепление у города Розетта и нашли чёрный камень с надписями — <b>Розеттский камень</b>.' },
+  { do: 'Что на камне?', st: { bands: 1 }, say: 'На камне один и тот же текст написан три раза: <b>иероглифами</b>, <b>демотическим</b> письмом (упрощённым египетским) и <b>по-гречески</b>. А греческий учёные читать умели!' },
+  { do: 'Найди имя царя', st: { bands: 0, cart: 1 }, say: 'Некоторые иероглифы обведены рамкой — <b>картушем</b>. Учёные догадались: в картуше пишут имя царя. В греческом тексте было имя <b>Птолемей</b>.' },
+  { do: 'Прочитай!', st: { dec: 1 }, say: 'В <b>1822 году</b> француз <b>Жан-Франсуа Шампольон</b> сравнил знаки и понял: многие иероглифы обозначают <b>звуки</b>, как наши буквы. Иероглифы снова «заговорили»!' },
+];
+// a rough Russian (and Latin) alphabet of one-sound signs, the way school books show it
+const ABC = {
+  а: [[G.vulture, 'стервятник']], б: [[G.foot, 'нога']], в: [[G.viper, 'рогатая гадюка']], г: [[G.stand, 'подставка']], д: [[G.hand, 'ладонь']],
+  е: [[G.reed, 'тростник']], ё: [[G.reeds, 'два тростника'], [G.lasso, 'петля']], ж: [[G.cobra, 'кобра']], з: [[G.bolt, 'засов']], и: [[G.reed, 'тростник']],
+  й: [[G.reeds, 'два тростника']], к: [[G.basket, 'корзина']], л: [[G.lion, 'лев']], м: [[G.owl, 'сова']], н: [[G.water, 'вода']], о: [[G.lasso, 'петля']],
+  п: [[G.stool, 'табурет']], р: [[G.mouth, 'рот']], с: [[G.cloth, 'сложенная ткань']], т: [[G.bread, 'хлеб']], у: [[G.quail, 'птенец перепёлки']],
+  ф: [[G.viper, 'рогатая гадюка']], х: [[G.sieve, 'сито']], ц: [[G.bread, 'хлеб'], [G.cloth, 'ткань']], ч: [[G.rope, 'верёвка']], ш: [[G.pool, 'пруд']],
+  щ: [[G.pool, 'пруд']], ы: [[G.reeds, 'два тростника']], э: [[G.arm, 'рука']], ю: [[G.reeds, 'два тростника'], [G.quail, 'птенец']], я: [[G.reeds, 'два тростника'], [G.vulture, 'стервятник']],
+  a: [[G.vulture, 'стервятник']], b: [[G.foot, 'нога']], c: [[G.basket, 'корзина']], d: [[G.hand, 'ладонь']], e: [[G.reed, 'тростник']], f: [[G.viper, 'рогатая гадюка']],
+  g: [[G.stand, 'подставка']], h: [[G.wick, 'фитиль']], i: [[G.reed, 'тростник']], j: [[G.cobra, 'кобра']], k: [[G.basket, 'корзина']], l: [[G.lion, 'лев']],
+  m: [[G.owl, 'сова']], n: [[G.water, 'вода']], o: [[G.lasso, 'петля']], p: [[G.stool, 'табурет']], q: [[G.basket, 'корзина']], r: [[G.mouth, 'рот']],
+  s: [[G.cloth, 'сложенная ткань']], t: [[G.bread, 'хлеб']], u: [[G.quail, 'птенец перепёлки']], v: [[G.viper, 'рогатая гадюка']], w: [[G.quail, 'птенец перепёлки']],
+  x: [[G.basket, 'корзина'], [G.cloth, 'ткань']], y: [[G.reeds, 'два тростника']], z: [[G.bolt, 'засов']],
+};
+{
+  const sec = $('#e9');
+  $('#stone').innerHTML = stoneSVG;
+  const svg = $('#stone svg');
+  const show = k => {
+    const st = acc(EP9, k);
+    ['bands', 'cart'].forEach(c => svg.classList.toggle('s-' + c, !!st[c]));
+    svg.classList.toggle('forgot', !!st.forgot);
+    $('#say9').innerHTML = EP9[k].say;
+    $('#decode9').innerHTML = st.dec ? PTOL.map(([g, l], i) => `<span style="animation-delay:${i * .12}s">${hg(g)}<b>${l}</b></span>`).join('') : k === 0 ? `<span>${hg(G.papyrus)}<b>папирус</b></span><span>${hg(G.scribe)}<b>набор писца</b></span>` : '';
+    const last = k === EP9.length - 1;
+    $('#write9').hidden = !last;
+    if (last) { drawName(); seen(sec); concl($('#c9'), 'Египтяне писали иероглифами на папирусе. Их забыли на 1500 лет, а в 1822 году Шампольон прочитал их с помощью Розеттского камня. С тех пор мы можем читать, что писали сами египтяне.'); }
+    else concl($('#c9'), '');
+  };
+  const drawName = () => {
+    const raw = $('#name9').value.toLowerCase(), signs = [];
+    for (const ch of raw) (ABC[ch] || []).forEach(s => signs.push([...s, ch]));
+    const det = $('input[name="det9"]:checked').value === 'f' ? [G.woman, 'женщина', ''] : [G.man, 'мужчина', ''];
+    $('#cart9').innerHTML = signs.length ? signs.map(([g]) => hg(g)).join('') + hg(det[0]) : '<span class="ph">здесь будет имя</span>';
+    $('#leg9').innerHTML = signs.length ? signs.map(([g, n, ch]) => `<span><b>${ch.toUpperCase()}</b> — ${n}</span>`).join('') + `<span>в конце — ${det[1]}</span>` : '';
+  };
+  $('#alpha9').innerHTML = Object.entries(ABC).filter(([k]) => /[а-я]/.test(k)).map(([k, v]) => `<span>${hg(v.map(s => s[0]).join(''))}${k.toUpperCase()}</span>`).join('');
+  $('#name9').oninput = drawName;
+  $$('input[name="det9"]').forEach(r => r.onchange = drawName);
+  sec._step = stepper($('.bar', sec), EP9.length, show, k => EP9[k].do);
+  sec._reset = () => { $('#name9').value = ''; sec._step.go(0, true); };
+}
+
+// ---------- Question 10 ----------
+const QUIZ = [
+  ['Почему Египет называют «даром Нила»?', ['Нил дарил воду и плодородный ил', 'В Ниле находили золото', 'Нил защищал от холода', 'По Нилу привозили подарки'], 0, 'После разлива на полях оставался ил — на нём рос богатый урожай.'],
+  ['Где находился Верхний Египет?', ['На севере, у моря', 'На юге, в верховье Нила', 'На западе, в пустыне', 'На острове'], 1, 'Нил течёт с юга на север, поэтому юг — верховье, Верхний Египет.'],
+  ['Кто объединил Египет около 3000 года до н. э.?', ['Рамсес II', 'Тутмос III', 'Царь Мина (Менес)', 'Хеопс'], 2, 'Мина, царь Верхнего Египта, завоевал Нижний Египет.'],
+  ['Что означал посох-крюк в руках фараона?', ['Право наказывать', 'Заботу о народе, как пастуха о стаде', 'Власть над морем', 'Любовь к охоте'], 1, 'Крюк — посох пастуха. А плеть — знак права наказывать.'],
+  ['Кого называли «глазами и ушами фараона»?', ['Рабов', 'Воинов', 'Писцов', 'Земледельцев'], 2, 'Писцы всё записывали и докладывали: сколько собрали зерна, кто заплатил налог.'],
+  ['Какой фараон заключил мир с хеттами после битвы при Кадеше?', ['Рамсес II', 'Тутмос III', 'Эхнатон', 'Хеопс'], 0, 'Это один из первых мирных договоров в истории.'],
+  ['Какой бог покровительствовал писцам?', ['Анубис', 'Хапи', 'Тот', 'Птах'], 2, 'Тот, бог мудрости с головой ибиса, по преданию научил людей письму.'],
+  ['Что клали на весы против сердца на суде Осириса?', ['Золотую монету', 'Перо богини Маат', 'Камень из пирамиды', 'Зерно'], 1, 'Перо — знак правды. Сердце честного человека не тяжелее пера.'],
+  ['Почему на египетских рисунках люди «повёрнуты боком», а плечи и глаз — прямо?', ['Художники не умели рисовать', 'Так велело правило: каждую часть тела показывали с самой понятной стороны', 'Так рисовали только врагов', 'Рисунки стёрлись от времени'], 1, 'Египетские художники соблюдали строгие правила — канон. Голову и ноги легче узнать сбоку, а плечи и глаз — спереди.'],
+  ['Что помогло Шампольону прочитать иероглифы?', ['Розеттский камень', 'Пирамида Хеопса', 'Карта Нила', 'Мумия фараона'], 0, 'На камне один текст был написан иероглифами, демотическим письмом и по-гречески.'],
+];
+const RANKS = [[10, 'Визирь фараона', G.king], [8, 'Мудрый жрец', G.netjer], [5, 'Писец', G.scribe], [0, 'Ученик писца', G.papyrus]];
+{
+  const sec = $('#e10');
+  let i = 0, pick = null, res = [];
+  const draw = () => {
+    const dots = `<div class="dots">${QUIZ.map((_, j) => `<i class="${j < res.length ? (res[j] ? 'r' : 'w') : j === i ? 'c' : ''}"></i>`).join('')}</div>`;
+    if (i >= QUIZ.length) {
+      const s = res.filter(Boolean).length, [, rank, g] = RANKS.find(([m]) => s >= m);
+      $('#quiz').innerHTML = dots + `<div class="result"><div class="hg">${g}</div><div class="score">${s} из ${QUIZ.length}</div><div class="rank">Твоё звание: ${rank}</div>
+        <p style="color:var(--muted)">${s === QUIZ.length ? 'Безупречно! Сам Тот записал бы твоё имя на папирусе.' : 'Ошибки — не беда: вернись к вопросам и пройди ещё раз.'}</p><p><button class="btn" id="qz-again">↺ Пройти ещё раз</button></p></div>`;
+      $('#qz-again').onclick = () => { i = 0; pick = null; res = []; draw(); };
+      seen(sec);
+      return;
+    }
+    const [q, o, r, why] = QUIZ[i];
+    $('#quiz').innerHTML = dots + `<p class="sit"><span>Вопрос ${i + 1} из ${QUIZ.length}</span>${q}</p><div class="opts">` +
+      o.map((t, j) => `<button class="choice${pick != null ? (j === r ? ' right' : j === pick ? ' wrong' : ' dim') : ''}" data-j="${j}" ${pick != null ? 'disabled' : ''}>${t}</button>`).join('') + `</div>` +
+      (pick != null ? `<div class="fb${pick === r ? '' : ' bad'}"><b>${pick === r ? 'Верно!' : 'Неверно.'}</b> ${why}</div><div class="bar"><button class="next" id="qz-next">${nextLabel(i + 1 < QUIZ.length ? 'Следующий вопрос' : 'Узнать звание')}</button></div>` : '');
+    $('#qz-next') && ($('#qz-next').onclick = () => { i++; pick = null; draw(); });
+  };
+  $('#quiz').onclick = e => { const b = e.target.closest('.choice'); if (b && !b.disabled && pick == null) { pick = +b.dataset.j; res.push(pick === QUIZ[i][2]); draw(); } };
+  sec._reset = () => { i = 0; pick = null; res = []; draw(); };
+}
+
+// ---------- wiring ----------
+$('#toc').innerHTML = TOC.map((t, i) => `<li><a href="#${i + 1}" data-e="${i + 1}">${i < 10 ? `${i + 1}. ` : ''}${t}</a></li>`).join('');
+const open = n => {
+  // a wrong hash (#12, #0, #x) opens question 1
+  n = +n;
+  if (!(Number.isInteger(n) && n >= 1 && n <= TOC.length)) n = 1;
+  $$('.ep').forEach(s => s.classList.toggle('on', s.id === 'e' + n));
+  const sec = $('#e' + n);
+  sec._reset?.();
+  $$('#toc a').forEach(a => {
+    const now = a.dataset.e == n;
+    a.classList.toggle('now', now);
+    if (now) { a.setAttribute('aria-current', 'step'); a.scrollIntoView?.({ block: 'nearest', inline: 'nearest' }); } else a.removeAttribute('aria-current');
+  });
+  if (n === TOC.length) seen(sec);
+  scrollTo(0, 0);
+  if (location.hash !== '#' + n) try { history.replaceState(null, '', '#' + n); } catch {}
+};
+// A link in the list changes the hash, and the hash opens the question: so the browser Back button works.
+// A click on the current question does not change the hash, so it restarts the question here.
+$('#toc').onclick = e => { const a = e.target.closest('a'); if (a && a.hash === location.hash) open(a.dataset.e); };
+addEventListener('hashchange', () => open(location.hash.slice(1)));
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, select, textarea')) return;
+  const s = $('.ep.on')?._step;
+  if (!s) return;
+  if (e.key === 'ArrowRight' && !$('.bar .next', $('.ep.on'))?.disabled) s.go(s.k + 1);
+  if (e.key === 'ArrowLeft') s.go(s.k - 1);
+});
+open(location.hash.slice(1));
+</script>
+</body>
+</html>
